@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export default function LoginPage() {
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     username: 'example@gmail.com',
@@ -17,6 +19,7 @@ export default function LoginPage() {
 
   const handleLogin = () => {
     console.log('Login attempt:', formData);
+    navigate('/subjectslist');
   };
 
   return (
