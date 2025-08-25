@@ -1,31 +1,45 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useMemo, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Navbar from "../../components/Navbar";
 import Sidebar from '../../components/Sidebar';
 import { Search, Plus,Trash2 } from 'lucide-react';
+import { getFacultyMembers, deleteFacultyMember } from '../../services/facultyService';
 
 const FacultyMemberListPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [members, setMembers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState("");
   const navigate = useNavigate();
+  const location = useLocation();
 
-  // Mock data for faculty members with id
-  const facultyMembers = [
-    { 
-      id: 1, 
-      nameTH: 'ผศ. ธนา หงษ์สุวรรณ', 
-      nameENG: 'Asst.Prof. Thana Hongsuwan', 
-      email: 'khthana@kmitl.ac.th, khthana@hotmail.com', 
-      tel: '02-7392400-2 ต่อ 121', 
-      room: 'ECC 911' 
-    },
-  ];
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      setErr("");
+      const list = await getFacultyMembers();
+      setMembers(list);
+    } catch (e) {
+      setErr(e.message || "โหลดข้อมูลล้มเหลว");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, [location.key]);
 
   // Filter function
-  const filteredMembers = facultyMembers.filter(member =>
-    member.nameENG.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    member.nameTH.includes(searchTerm) ||
-    member.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredMembers = useMemo(() => {
+    const q = searchTerm.trim().toLowerCase();
+    if (!q) return members;
+    return members.filter((m) =>
+      (m.nameENG || "").toLowerCase().includes(q) ||
+      (m.nameTH || "").includes(searchTerm) ||
+      (m.email || "").toLowerCase().includes(q)
+    );
+  }, [members, searchTerm]);
 
   const handleDetailClick = (memberId) => {
     navigate(`/facultymember/${memberId}`);
@@ -35,17 +49,23 @@ const FacultyMemberListPage = () => {
     navigate(`/addfacultymember`);
   };
 
-  const handleDeleteClick = (memberId) => {
+  const handleDeleteClick = async (memberId) => {
     const confirmDelete = window.confirm("คุณต้องการลบข้อมูลนี้หรือไม่?");
-    if (confirmDelete) {
-      console.log(`ลบสำเร็จ: ${memberId}`);
-      // ใส่โค้ดลบข้อมูลจริง ๆ ตรงนี้ เช่น API call
+    if (!confirmDelete) return;
+    try {
+      await deleteFacultyMember(memberId);
+      alert("ลบสำเร็จ");
+      await fetchData();
+    } catch (e) {
+      alert(e.message || "ลบไม่สำเร็จ");
     }
   };
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <Sidebar activeMenu="subjects" /> {/* Sidebar */}
+      <div className="flex h-screen">
+        <Sidebar activeMenu="subjects" /> {/* Sidebar */}
+      </div>
       {/* Main Content */}
       <div className="flex-1">
         <Navbar title="Faculty Members List" /> {/* Navbar */}
@@ -74,41 +94,56 @@ const FacultyMemberListPage = () => {
             </div>
           </div>
 
+          {/* states */}
+          {loading && (
+            <div className="bg-white rounded-lg shadow p-6">กำลังโหลดข้อมูล…</div>
+          )}
+          {err && !loading && (
+            <div className="bg-white rounded-lg shadow p-6 text-red-600">
+              เกิดข้อผิดพลาด: {err}
+            </div>
+          )}
+
           {/* Table */}
+          {!loading && !err && (
           <div className="bg-white rounded-lg shadow">
             <div className="max-h-[700px] overflow-y-auto">
               <table className="w-full">
                 <thead className="bg-gray-50 sticky top-0 z-10">
                   <tr>
-                    <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Thai name</th>
-                    <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Eng name</th>
-                    <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                    <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tel</th>
-                    <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Room</th>
-                    <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Thai name</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Eng name</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tel</th>
+                    <th className="py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Room</th>
+                    <th className="py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredMembers.map((member) => (
                     <tr key={member.id} className="hover:bg-gray-50">
-                      <td className="px-5 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                         {member.nameTH}
                       </td>
-                      <td className="px-5 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                         {member.nameENG}
                       </td>
-                      <td className="px-5 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {member.email}
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {member.email
+                          ? member.email.split(",").map((mail, idx) => (
+                              <div key={idx}>{mail.trim()}</div>
+                            ))
+                          : "-"}
                       </td>
-                      <td className="px-5 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                         {member.tel}
                       </td>
-                      <td className="px-5 py-4 whitespace-nowrap">
+                      <td className="py-4 whitespace-nowrap">
                         <span className="inline-flex px-3 py-1 rounded-full text-xs font-medium">
                           {member.room}
                         </span>
                       </td>
-                      <td className="px-5 py-4 whitespace-nowrap">
+                      <td className="py-4 whitespace-nowrap">
                         <div className="flex items-center gap-2">
                           <button 
                             onClick={() => handleDetailClick(member.id)}
@@ -131,6 +166,7 @@ const FacultyMemberListPage = () => {
               </table>
             </div>
           </div>
+          )}
         </div>
       </div>
     </div>
