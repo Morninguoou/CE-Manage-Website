@@ -9,7 +9,6 @@ const FacultyMemberAddPage = () => {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
-    // ❌ ไม่มี id (accId) ให้กรอกแล้ว
     nameTH: '',
     nameENG: '',
     email: '',
@@ -26,7 +25,6 @@ const FacultyMemberAddPage = () => {
   const [err, setErr] = useState("");
   const [saving, setSaving] = useState(false);
 
-  // ลิสต์คำนำหน้า/ตำแหน่งที่มักพบ เพื่อตัดออกก่อน gen
   const TITLE_TOKENS = new Set([
     'mr','mrs','ms','miss',
     'dr','prof',
@@ -35,26 +33,21 @@ const FacultyMemberAddPage = () => {
     'asst.prof','assoc.prof','prof.dr','asst.prof.dr','assoc.prof.dr'
   ]);
 
-  // gen accId จาก "คำแรกหลังคำนำหน้า" แล้วเก็บไว้เป็น a-zA-Z0-9 เท่านั้น
   const genAccIdFromEng = (eng) => {
     if (!eng) return "";
 
-    // ตัดเครื่องหมายทั่วไปออก แล้วแตกเป็นคำ
     const words = eng
       .replace(/[.,()]/g, " ")
       .split(/\s+/)
       .map(w => w.trim())
       .filter(Boolean);
 
-    // กรองคำนำหน้า (เช็คหลังเอา . ออกและเป็น lower)
     const cleaned = words.filter(w => !TITLE_TOKENS.has(w.toLowerCase().replace(/\./g, '')));
 
     if (!cleaned.length) return "";
 
-    // เอาคำแรกเป็นชื่อ (ตามตัวอย่างอยากได้ "Amnach" จาก "Amnach Khawne")
     const first = cleaned[0];
 
-    // เก็บเฉพาะ a-zA-Z0-9
     const onlyAN = first.replace(/[^A-Za-z0-9]/g, "");
 
     return onlyAN;
@@ -79,16 +72,13 @@ const FacultyMemberAddPage = () => {
       setSaving(true);
       setErr("");
 
-      // ✅ gen accId จากชื่ออังกฤษเสมอ (ไม่ต้องมีช่องให้กรอก)
       const accId = genAccIdFromEng(formData.nameENG);
       if (!accId) {
         throw new Error("โปรดกรอกชื่อภาษาอังกฤษให้ถูกต้องเพื่อสร้าง Acc ID อัตโนมัติ");
       }
 
-      // ส่งขึ้น API โดยแนบ id (accId) ที่ gen มา
       const created = await createFacultyMember({ ...formData, id: accId });
 
-      // ไปหน้า Detail ของ accId ที่สร้าง
       navigate(`/facultymember/${created?.id || accId}`);
     } catch (e2) {
       setErr(e2.message || "บันทึกไม่สำเร็จ");

@@ -5,6 +5,9 @@ import FacultyMemberDetailPage from './pages/FacultyMember/FacultyMemberDetailPa
 import FacultyMemberAddPage from './pages/FacultyMember/FacultyMemberAddPage'
 import FacultyMemberEditPage from './pages/FacultyMember/FacultyMemberEditPage'
 import LoginPage from './pages/LoginPage'
+import EventListPage from './pages/Event/EventListPage'
+import CreateEventPage from './pages/Event/EventCreatePage'
+import EditEventPage from './pages/Event/EventEditPage'
 
 function App() {
   return (
@@ -16,6 +19,9 @@ function App() {
         <Route path="/facultymember/:id" element={<FacultyMemberDetailPage />} />
         <Route path="/addfacultymember" element={<FacultyMemberAddPage />} />
         <Route path="/editfacultymember/:id" element={<FacultyMemberEditPage />} />
+        <Route path="/eventslist" element={<EventListPage />} />
+        <Route path="/event/create" element={<CreateEventPage />} />
+        <Route path="/event/edit/:id" element={<EditEventPage />} />
       </Routes>
     </div>
   )
