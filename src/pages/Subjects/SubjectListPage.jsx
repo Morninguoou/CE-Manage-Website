@@ -1,14 +1,21 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Navbar from "../../components/Navbar";
 import Sidebar from '../../components/Sidebar';
 import { Search, FileText, Plus, } from 'lucide-react';
 
 const SubjectListPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const navigate = useNavigate();
 
   // Mock data for subjects
   const subjects = [
-    { id: '01076036', credit: '2(2-0-4)', name: 'USER EXPERIENCE AND USER INTERFACE DESIGN', type: 'บังคับ', status: 'บังคับเลือก' },
+    { id: '01076036', credit: '2(2-0-4)', name: 'USER EXPERIENCE AND USER INTERFACE DESIGN', type: 'บังคับ', status: 'บังคับเลือก',prerequisite: "01076105 OBJECT ORIENTED PROGRAMMING",
+      platform: "Google Classroom",
+      detail_th:
+        "วิชานี้แนะนำขั้นตอนของการออกแบบประสบการณ์และการออกแบบส่วนติดต่อผู้ใช้งาน โดยจะมีจุดมุ่งหมายให้นักศึกษาได้คุ้นเคยกับแนวคิด วิธีปฏิบัติ และเทคนิคที่จำเป็นในการสร้างประสบการณ์ของผู้ใช้งาน ซึ่งเป็นส่วนหนึ่งของการพัฒนาการเชื่อมโยงข่าวสาร วิชานี้จะให้นักศึกษาได้มีโอกาสในการค้นหาทรัพยากร พัฒนาทักษะ และฝึกปฏิบัติที่จำเป็นต่อการออกแบบ พัฒนาและประเมินส่วนติดต่อข้อมูลจากมุมมองของผู้ใช้งาน",
+      detail_en:
+        "This course provides a comprehensive overview of the user experience and user interface design process, and is intended to familiarize students with the methods, concepts, and techniques necessary to make user experience design an integral part of developing information interfaces. The course provides students with an opportunity to acquire the resources, skills, and hands -on experience they need to design, develop, and evaluate information interfaces from a user -centered design perspective.", },
     { id: '01076036', credit: '2(2-0-4)', name: 'USER EXPERIENCE AND USER INTERFACE DESIGN', type: 'บังคับ', status: 'บังคับ' },
     { id: '01076036', credit: '2(2-0-4)', name: 'USER EXPERIENCE AND USER INTERFACE DESIGN', type: 'เลือกเฉพาะสาขา', status: 'บังคับ' },
     { id: '01076036', credit: '2(2-0-4)', name: 'USER EXPERIENCE AND USER INTERFACE DESIGN', type: 'บังคับเลือก', status: 'เลือกเฉพาะสาขา' },
@@ -30,6 +37,14 @@ const SubjectListPage = () => {
       case 'เลือกเฉพาะสาขา': return 'text-[#FFC554] font-bold border border-yellow-300';
       default: return 'text-gray-700 border border-gray-300';
     }
+  };
+
+  const handleDetail = (subject) => {
+    navigate(`/subjects/${subject.id}`, { state: { subject } });
+  };
+
+  const handleAddNew = () => {
+    navigate("/subjects/create");
   };
 
   return (
@@ -57,7 +72,9 @@ const SubjectListPage = () => {
                 <FileText size={16} className="mr-2" />
                 Excel
               </button>
-              <button className="flex items-center px-4 py-2 bg-red-500 text-white rounded-2xl hover:bg-red-600 transition-colors">
+              <button 
+                onClick={handleAddNew}
+                className="flex items-center px-4 py-2 bg-red-500 text-white rounded-2xl hover:bg-red-600 transition-colors">
                 <Plus size={16} className="mr-2" />
                 Add New
               </button>
@@ -95,7 +112,9 @@ const SubjectListPage = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <button className="bg-blue-100 text-blue-700 px-4 py-2 rounded-xl text-sm font-medium hover:bg-blue-200 transition-colors">
+                        <button
+                          onClick={() => handleDetail(subject)}
+                          className="bg-blue-100 text-blue-700 px-4 py-2 rounded-xl text-sm font-medium hover:bg-blue-200 transition-colors">
                           Detail
                         </button>
                       </td>
