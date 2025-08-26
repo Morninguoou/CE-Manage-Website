@@ -111,31 +111,31 @@ const FacultyMemberListPage = () => {
               <table className="w-full">
                 <thead className="bg-gray-50 sticky top-0 z-10">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Thai name</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Eng name</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tel</th>
-                    <th className="py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Room</th>
-                    <th className="py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                    <th className="px-4 py-3 text-balance text-xs font-medium text-gray-500 uppercase tracking-wider">Thai name</th>
+                    <th className="px-4 py-3 text-balance text-xs font-medium text-gray-500 uppercase tracking-wider">Eng name</th>
+                    <th className="px-4 py-3 text-balance text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                    <th className="px-4 py-3 text-balance text-xs font-medium text-gray-500 uppercase tracking-wider">Tel</th>
+                    <th className="py-3 text-balance text-xs font-medium text-gray-500 uppercase tracking-wider">Room</th>
+                    <th className="py-3 text-balance text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredMembers.map((member) => (
                     <tr key={member.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-center text-gray-900">
                         {member.nameTH}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-center text-gray-900">
                         {member.nameENG}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-center text-gray-900">
                         {member.email
                           ? member.email.split(",").map((mail, idx) => (
                               <div key={idx}>{mail.trim()}</div>
                             ))
                           : "-"}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-center text-gray-900">
                         {member.tel}
                       </td>
                       <td className="py-4 whitespace-nowrap">
@@ -144,7 +144,7 @@ const FacultyMemberListPage = () => {
                         </span>
                       </td>
                       <td className="py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 justify-center">
                           <button 
                             onClick={() => handleDetailClick(member.id)}
                             className="bg-blue-100 text-blue-700 px-4 py-2 rounded-xl text-sm font-medium hover:bg-blue-200 transition-colors"
