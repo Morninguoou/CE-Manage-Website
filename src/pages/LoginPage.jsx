@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { loginAdminWeb } from '../services/authService';
 
 export default function LoginPage() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
   const [formData, setFormData] = useState({
-    username: 'example@gmail.com',
-    password: '1234567'
+    username: '',
+    password: ''
   });
 
   const handleInputChange = (e) => {
@@ -17,16 +20,30 @@ export default function LoginPage() {
     });
   };
 
-  const handleLogin = () => {
-    console.log('Login attempt:', formData);
-    navigate('/subjectslist');
+  const handleLogin = async () => {
+    try {
+      setLoading(true);
+      setErrorMsg("");
+
+      const resp = await loginAdminWeb(formData);
+      const data = resp?.data; 
+      if (data?.success) {
+        navigate('/subjectslist');
+      } else {
+        setErrorMsg(data?.message || "Login failed");
+      }
+    } catch (err) {
+      setErrorMsg(err.message || "Login failed");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="min-h-screen flex">
-      {/* Left side - Background with circuit pattern */}
+      {/* Left side */}
       <div className="flex-1 relative bg-gradient-to-b from-[#498EFF] to-[#8ECAE6] overflow-hidden">
-        {/* Background pattern overlay */}
+        {/* Background*/}
         <div className="absolute inset-0 opacity-30">
           <img 
             src="/src/assets/images/mainPageBG.png" 
@@ -49,7 +66,7 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Right side - Login form */}
+      {/* Right side */}
       <div className="flex-1 bg-[#FAF9F6] flex items-center justify-center p-8">
         <div className="w-full max-w-xl">
           <div className="bg-white rounded-lg shadow-lg p-8">
@@ -108,20 +125,18 @@ export default function LoginPage() {
                 </div>
               </div>
 
+              {errorMsg && (
+                <div className="text-red-600 text-sm -mt-2">{errorMsg}</div>
+              )}
+
               {/* Login button */}
               <button
                 onClick={handleLogin}
                 className="w-full bg-[#FFC554] hover:bg-[#ffb554] text-white font-semibold py-3 px-4 rounded-2xl transition duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
               >
-                Login
+                {loading ? 'Signing in...' : 'Login'}
               </button>
             </div>
-            
-            {/* <div className="mt-6 text-center">
-              <a href="#" className="text-sm text-blue-600 hover:text-blue-800">
-                Forgot your password?
-              </a>
-            </div> */}
           </div>
         </div>
       </div>
