@@ -11,6 +11,7 @@ import LoginPage from './pages/LoginPage'
 import EventListPage from './pages/Event/EventListPage'
 import CreateEventPage from './pages/Event/EventCreatePage'
 import EditEventPage from './pages/Event/EventEditPage'
+import StudentListPage from './pages/Student/StudentListPage'
 
 function App() {
   return (
@@ -32,6 +33,11 @@ function App() {
         <Route path="/eventslist" element={<EventListPage />} />
         <Route path="/event/create" element={<CreateEventPage />} />
         <Route path="/event/edit/:id" element={<EditEventPage />} />
+        // student
+        <Route path="/studentslist" element={<StudentListPage />} />
+        {/* <Route path="/students/:id" element={<StudentDetailPage />} />
+        <Route path="/students/:id/edit" element={<StudentEditPage />} />
+        <Route path="/students/create" element={<StudentAddPage />} /> */}
       </Routes>
     </div>
   )
