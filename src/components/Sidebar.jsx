@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LayoutGrid, BookText, CalendarClock, User, BriefcaseBusiness } from 'lucide-react';
+import { LayoutGrid, BookText, CalendarClock, User, BriefcaseBusiness, Bot } from 'lucide-react';
 
 const Sidebar = ({ activeMenu }) => {
   const navigate = useNavigate();
@@ -11,6 +11,7 @@ const Sidebar = ({ activeMenu }) => {
     { name: 'Events List', icon: CalendarClock, key: 'eventslist' },
     { name: 'Faculty Member', icon: BriefcaseBusiness, key: 'facultymemberslist' },
     { name: 'Student', icon: User, key: 'studentslist' },
+    { name: 'CE-GPT', icon: Bot, key: 'cegpt' },
   ];
 
   return (
@@ -19,7 +20,7 @@ const Sidebar = ({ activeMenu }) => {
         <div className="flex items-center mb-2">
           <div className="min-w-10 h-16 mx-auto mt-4">
             <img 
-              src="/src/assets/images/ce_icon.png" 
+              src="/src/assets/images/icon.png" 
               alt="CE Logo" 
               className="w-full h-full object-contain"
             />
