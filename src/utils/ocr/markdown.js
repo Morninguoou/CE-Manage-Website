@@ -22,10 +22,20 @@ export const convertHtmlTableToMarkdown = (htmlTable) => {
       return colCount
     }))
     
+    // Calculate maximum rowspan from all cells
+    let maxRowspan = 1
+    rows.forEach(row => {
+      Array.from(row.querySelectorAll('th, td')).forEach(cell => {
+        const rowspan = parseInt(cell.getAttribute('rowspan') || '1')
+        maxRowspan = Math.max(maxRowspan, rowspan)
+      })
+    })
+    
     // Build a 2D grid to handle rowspan/colspan
+    // Calculate maxRows based on actual rowspan values and number of rows
     const grid = []
     const occupied = []
-    const maxRows = rows.length * 5
+    const maxRows = rows.length + maxRowspan - 1
     
     for (let i = 0; i < maxRows; i++) {
       grid[i] = Array(maxCols).fill('')

@@ -34,3 +34,19 @@ export const extractTextFromDocument = async (file) => {
   return response.data
 }
 
+/**
+ * Process and store extracted text
+ */
+export const processAndStore = async (text, filename, options = {}) => {
+  const response = await apiClient.post('/api/ocr/store', {
+    text,
+    filename: filename || null,
+    chunk_size: options.chunkSize || 512,
+    chunk_overlap: options.chunkOverlap || 50,
+    preserve_page_boundaries: options.preservePageBoundaries !== false,
+  }, {
+    timeout: TIMEOUTS.OCR_EXTRACT * 2,
+  })
+  return response.data
+}
+

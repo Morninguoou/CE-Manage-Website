@@ -1,8 +1,9 @@
 import { useState, useCallback } from 'react'
-import { extractTextFromDocument } from '../../services/ocr/api'
+import { extractTextFromDocument, processAndStore } from '../../services/ocr/api'
 
 export const useOCR = () => {
-  const [loading, setLoading] = useState(false)
+  const [extracting, setExtracting] = useState(false)
+  const [storing, setStoring] = useState(false)
   const [result, setResult] = useState(null)
   const [error, setError] = useState(null)
 
@@ -12,7 +13,7 @@ export const useOCR = () => {
       return
     }
 
-    setLoading(true)
+    setExtracting(true)
     setError(null)
     setResult(null)
 
@@ -23,7 +24,31 @@ export const useOCR = () => {
       const errorMessage = err.response?.data?.detail || err.message || 'An error occurred'
       setError(errorMessage)
     } finally {
-      setLoading(false)
+      setExtracting(false)
+    }
+  }, [])
+
+  const processAndStoreText = useCallback(async (text, filename, options = {}) => {
+    if (!text || !text.trim()) {
+      setError('No text to process')
+      return
+    }
+
+    setStoring(true)
+    setError(null)
+
+    try {
+      const data = await processAndStore(text, filename, options)
+      setResult((prevResult) => ({
+        ...(prevResult || {}),
+        ...data,
+        pipeline_complete: true,
+      }))
+    } catch (err) {
+      const errorMessage = err.response?.data?.detail || err.message || 'An error occurred'
+      setError(errorMessage)
+    } finally {
+      setStoring(false)
     }
   }, [])
 
@@ -33,10 +58,12 @@ export const useOCR = () => {
   }, [])
 
   return {
-    loading,
+    extracting,
+    storing,
     result,
     error,
     extractText,
+    processAndStoreText,
     reset,
   }
 }

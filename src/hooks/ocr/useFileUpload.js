@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { validateFile } from '../../utils/ocr'
 
 export const useFileUpload = () => {
@@ -6,10 +6,15 @@ export const useFileUpload = () => {
   const [fileUrl, setFileUrl] = useState(null)
   const [fileError, setFileError] = useState(null)
   const fileInputRef = useRef(null)
+  const fileUrlRef = useRef(null)
+
+  useEffect(() => {
+    fileUrlRef.current = fileUrl
+  }, [fileUrl])
 
   const resetFile = useCallback(() => {
-    if (fileUrl) {
-      URL.revokeObjectURL(fileUrl)
+    if (fileUrlRef.current) {
+      URL.revokeObjectURL(fileUrlRef.current)
     }
     setFileUrl(null)
     setFile(null)
@@ -17,7 +22,7 @@ export const useFileUpload = () => {
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
     }
-  }, [fileUrl])
+  }, [])
 
   const handleFileChange = useCallback((e) => {
     const selectedFile = e.target.files[0]
@@ -32,13 +37,13 @@ export const useFileUpload = () => {
       return
     }
 
-    if (fileUrl) {
-      URL.revokeObjectURL(fileUrl)
+    if (fileUrlRef.current) {
+      URL.revokeObjectURL(fileUrlRef.current)
     }
     setFile(selectedFile)
     const url = URL.createObjectURL(selectedFile)
     setFileUrl(url)
-  }, [fileUrl, resetFile])
+  }, [resetFile])
 
   return {
     file,

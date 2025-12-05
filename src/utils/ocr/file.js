@@ -1,7 +1,3 @@
-export const formatFileSize = (bytes) => {
-  return (bytes / 1024 / 1024).toFixed(2)
-}
-
 const removeExtension = (filename) => {
   if (!filename) return 'extracted'
   const lastDotIndex = filename.lastIndexOf('.')

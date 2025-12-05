@@ -1,15 +1,15 @@
 import React, { useState } from "react";
-import { Copy, Download, GitCompare, Eye, EyeOff } from "lucide-react";
+import { Copy, Download, GitCompare, Eye, EyeOff, Database, BadgeCheck } from "lucide-react";
 import PropTypes from "prop-types";
 import { MarkdownRenderer } from "./MarkdownRenderer";
 import {
   formatTextAsMarkdown,
   downloadTextFile,
   copyToClipboard,
-} from "../../utils/ocr";
+} from "../utils";
 import { Button } from "./ui";
 
-export const ResultSection = ({ result, onCompare, onCopy, onDownload }) => {
+export const ResultSection = ({ result, onCompare, onCopy, onDownload, onProcess, processing }) => {
   const [viewMode, setViewMode] = useState("formatted");
 
   const handleCopy = async () => {
@@ -34,6 +34,25 @@ export const ResultSection = ({ result, onCompare, onCopy, onDownload }) => {
         <h2 className="text-lg font-bold text-gray-600">Results</h2>
         {result && (
           <div className="flex gap-2">
+            {!result.pipeline_complete && result.text && (
+              <Button
+                onClick={onProcess}
+                variant="primary"
+                size="sm"
+                title="Process and store in vector database"
+                className="flex items-center gap-1.5"
+                disabled={processing}
+              >
+                <Database className="w-3.5 h-3.5" />
+                {processing ? 'Processing...' : 'Store'}
+              </Button>
+            )}
+            {result.pipeline_complete && (
+              <span className="text-xs text-green-600 font-semibold px-2 py-1 bg-green-50 rounded flex items-center gap-1">
+                <BadgeCheck className="w-3.5 h-3.5" />
+                Stored
+              </span>
+            )}
             <Button
               onClick={onCompare}
               variant="primary"
@@ -97,7 +116,7 @@ export const ResultSection = ({ result, onCompare, onCopy, onDownload }) => {
         ) : (
           <div className="flex items-center justify-center h-full text-gray-400">
             <p className="text-sm">
-              Upload a document to extract text and add to vector database
+              Upload a document and run OCR to see results
             </p>
           </div>
         )}
@@ -111,9 +130,11 @@ ResultSection.propTypes = {
     text: PropTypes.string.isRequired,
     pages: PropTypes.number,
     filename: PropTypes.string,
+    pipeline_complete: PropTypes.bool,
   }),
   onCompare: PropTypes.func.isRequired,
   onCopy: PropTypes.func,
   onDownload: PropTypes.func,
+  onProcess: PropTypes.func,
+  processing: PropTypes.bool,
 };
-

@@ -67,7 +67,6 @@ export const CompareModal = ({ isOpen, onClose, fileUrl, result }) => {
                     renderAnnotationLayer={true}
                     className="shadow-lg"
                     scale={1.0}
-                    width={undefined}
                   />
                 </Document>
               ) : (
