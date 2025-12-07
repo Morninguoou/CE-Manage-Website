@@ -6,7 +6,7 @@ import { configurePDFWorker } from '../../config/ocr/pdf'
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css'
 import 'react-pdf/dist/esm/Page/TextLayer.css'
 
-function CEGPTPage() {
+function OCRUploadPage() {
   const backendStatus = useBackendStatus()
   const { file, fileUrl, fileInputRef, fileError, handleFileChange, resetFile } = useFileUpload()
   const { extracting, storing, result, error, extractText, processAndStoreText, reset: resetOCR } = useOCR()
@@ -107,4 +107,5 @@ function CEGPTPage() {
   )
 }
 
-export default CEGPTPage
+export default OCRUploadPage
+

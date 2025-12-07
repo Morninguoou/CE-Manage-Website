@@ -12,7 +12,8 @@ import EventListPage from './pages/Event/EventListPage'
 import CreateEventPage from './pages/Event/EventCreatePage'
 import EditEventPage from './pages/Event/EventEditPage'
 import StudentListPage from './pages/Student/StudentListPage'
-import CEGPTPage from './pages/CEGPT/CEGPTPage'
+import OCRUploadPage from './pages/CEGPT/OCRUploadPage'
+import DocumentManagerPage from './pages/CEGPT/DocumentManagerPage'
 
 function App() {
   return (
@@ -37,7 +38,8 @@ function App() {
         // student
         <Route path="/studentslist" element={<StudentListPage />} />
         // cegpt
-        <Route path="/cegpt" element={<CEGPTPage />} />
+        <Route path="/cegpt" element={<OCRUploadPage />} />
+        <Route path="/cegpt/documents" element={<DocumentManagerPage />} />
         {/* <Route path="/students/:id" element={<StudentDetailPage />} />
         <Route path="/students/:id/edit" element={<StudentEditPage />} />
         <Route path="/students/create" element={<StudentAddPage />} /> */}

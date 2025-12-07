@@ -1,12 +1,12 @@
 import React, { useState } from "react";
-import { Copy, Download, GitCompare, Eye, EyeOff, Database, BadgeCheck } from "lucide-react";
+import { Copy, Download, GitCompare, Eye, EyeOff, ArchiveRestore, BadgeCheck } from "lucide-react";
 import PropTypes from "prop-types";
 import { MarkdownRenderer } from "./MarkdownRenderer";
 import {
   formatTextAsMarkdown,
   downloadTextFile,
   copyToClipboard,
-} from "../utils";
+} from "../../utils/ocr";
 import { Button } from "./ui";
 
 export const ResultSection = ({ result, onCompare, onCopy, onDownload, onProcess, processing }) => {
@@ -43,7 +43,7 @@ export const ResultSection = ({ result, onCompare, onCopy, onDownload, onProcess
                 className="flex items-center gap-1.5"
                 disabled={processing}
               >
-                <Database className="w-3.5 h-3.5" />
+                <ArchiveRestore className="w-3.5 h-3.5" />
                 {processing ? 'Processing...' : 'Store'}
               </Button>
             )}

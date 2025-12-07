@@ -41,12 +41,72 @@ export const processAndStore = async (text, filename, options = {}) => {
   const response = await apiClient.post('/api/ocr/store', {
     text,
     filename: filename || null,
-    chunk_size: options.chunkSize || 512,
-    chunk_overlap: options.chunkOverlap || 50,
+    chunk_size: options.chunkSize || 4000,
+    chunk_overlap: options.chunkOverlap || 500,
     preserve_page_boundaries: options.preservePageBoundaries !== false,
   }, {
     timeout: TIMEOUTS.OCR_EXTRACT * 2,
   })
+  return response.data
+}
+
+/**
+ * Get statistics about the vector database
+ */
+export const getVectorStatistics = async () => {
+  const response = await apiClient.get('/api/vector/statistics')
+  return response.data
+}
+
+/**
+ * List documents in the vector database
+ */
+export const listDocuments = async (limit = 100, offset = 0, filename = null) => {
+  const params = { limit, offset }
+  if (filename) {
+    params.filename = filename
+  }
+  const response = await apiClient.get('/api/vector/documents', { params })
+  return response.data
+}
+
+/**
+ * Get a specific document with its chunks
+ */
+export const getDocument = async (documentId) => {
+  const response = await apiClient.get(`/api/vector/documents/${documentId}`)
+  return response.data
+}
+
+/**
+ * Delete a document by document ID
+ */
+export const deleteDocument = async (documentId) => {
+  const response = await apiClient.delete(`/api/vector/documents/${documentId}`)
+  return response.data
+}
+
+/**
+ * Get other chunks (chunks without document_id)
+ */
+export const getOtherChunks = async (limit = 1000) => {
+  const response = await apiClient.get('/api/vector/other-chunks', { params: { limit } })
+  return response.data
+}
+
+/**
+ * Delete all other chunks
+ */
+export const deleteOtherChunks = async () => {
+  const response = await apiClient.delete('/api/vector/other-chunks')
+  return response.data
+}
+
+/**
+ * Delete a single chunk by point_id
+ */
+export const deleteChunk = async (pointId) => {
+  const response = await apiClient.delete(`/api/vector/chunks/${pointId}`)
   return response.data
 }
 

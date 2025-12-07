@@ -26,6 +26,12 @@ const createMarkdownComponents = (theme = 'blue') => {
   const headingSize = isOrange ? 'text-lg' : 'text-xl'
 
   return {
+    h1: ({ ...props }) => (
+      <h1
+        className={`text-gray-900 text-2xl font-bold mt-6 mb-4 pb-2 border-b-2 ${borderColor} first:mt-0`}
+        {...props}
+      />
+    ),
     h2: ({ ...props }) => (
       <h2
         className={`text-gray-900 ${headingSize} font-bold mt-6 mb-4 pb-2 border-b-2 ${borderColor} first:mt-0`}
@@ -114,13 +120,15 @@ export const MarkdownRenderer = ({ content, theme = 'blue', viewMode = 'formatte
           {content}
         </pre>
       ) : (
-        <ReactMarkdown
-          remarkPlugins={[remarkGfm]}
-          className="prose prose-slate max-w-none prose-base break-words"
-          components={components}
-        >
-          {content}
-        </ReactMarkdown>
+        <div className="text-gray-900">
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            className="prose prose-slate max-w-none prose-base break-words prose-headings:text-gray-900 prose-p:text-gray-900 prose-strong:text-gray-900 prose-ul:text-gray-900 prose-ol:text-gray-900 prose-li:text-gray-900 prose-a:text-blue-600 prose-blockquote:text-gray-900"
+            components={components}
+          >
+            {content}
+          </ReactMarkdown>
+        </div>
       )}
     </div>
   )
