@@ -6,7 +6,7 @@ const Sidebar = ({ activeMenu }) => {
   const navigate = useNavigate();
 
   const menus = [
-    { name: 'Overview', icon: LayoutGrid, key: 'overview' },
+    // { name: 'Overview', icon: LayoutGrid, key: 'overview' },
     { name: 'Subjects List', icon: BookText, key: 'subjectslist' },
     { name: 'Events List', icon: CalendarClock, key: 'eventslist' },
     { name: 'Faculty Member', icon: BriefcaseBusiness, key: 'facultymemberslist' },

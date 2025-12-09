@@ -1,20 +1,9 @@
-import React, { useMemo, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../../components/Navbar";
 import Sidebar from "../../components/Sidebar";
-import { Search, Plus, Pen } from "lucide-react";
-
-const MOCK_EVENTS = [
-  { id: 1, title: "ส่งข้อสอบกลางภาค", location: "ECC-810", date: "2024-12-12", time: "All Day" },
-  { id: 2, title: "ส่งข้อสอบกลางภาค", location: "ECC-811", date: "2024-12-13", time: "09:00 - 12:00" },
-  { id: 3, title: "ส่งข้อสอบกลางภาค", location: "ECC-809", date: "2024-12-14", time: "13:00 - 14:00" },
-  { id: 4, title: "ส่งข้อสอบกลางภาค", location: "E12-603", date: "2024-12-20", time: "All Day" },
-  { id: 5, title: "ส่งข้อสอบกลางภาค", location: "ECC-810", date: "2024-12-31", time: "09:00 - 12:00" },
-  { id: 6, title: "ส่งข้อสอบกลางภาค", location: "ECC-810", date: "2025-01-01", time: "13:00 - 14:00" },
-  { id: 7, title: "ส่งข้อสอบกลางภาค", location: "ECC-810", date: "2025-01-03", time: "All Day" },
-  { id: 8, title: "ส่งข้อสอบกลางภาค", location: "ECC-810", date: "2025-02-01", time: "10:00 - 12:00" },
-  { id: 9, title: "ส่งข้อสอบกลางภาค", location: "ECC-810", date: "2025-02-04", time: "All Day" },
-];
+import { Plus, Pen, Trash2 } from "lucide-react";
+import { getEventList, deleteEvent } from "../../services/eventService";
 
 function formatDateToDDMMYYYY(iso) {
   const d = new Date(iso);
@@ -24,24 +13,81 @@ function formatDateToDDMMYYYY(iso) {
   return `${dd}-${mm}-${yyyy}`;
 }
 
+function formatTime(startIso, endIso, allDayChecked) {
+  if (allDayChecked) return "All Day";
+
+  const start = new Date(startIso);
+  const end = new Date(endIso);
+
+  const fmt = (d) =>
+    d.toLocaleTimeString("th-TH", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+
+  return `${fmt(start)} - ${fmt(end)}`;
+}
+
 const EventListPage = () => {
-  const [searchTerm, setSearchTerm] = useState("");
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [deletingId, setDeletingId] = useState(null); // สำหรับ disable ปุ่มระหว่างลบ
+
   const navigate = useNavigate();
 
-  const filtered = useMemo(() => {
-    const q = searchTerm.trim().toLowerCase();
-    if (!q) return MOCK_EVENTS;
-    return MOCK_EVENTS.filter(
-      (e) =>
-        e.title.toLowerCase().includes(q) ||
-        e.location.toLowerCase().includes(q) ||
-        formatDateToDDMMYYYY(e.date).includes(q) ||
-        e.time.toLowerCase().includes(q)
-    );
-  }, [searchTerm]);
+  useEffect(() => {
+    const fetchEvents = async () => {
+      setLoading(true);
+      setError("");
+
+      try {
+        const data = await getEventList();
+
+        const mapped = data.map((e) => ({
+          id: e.eventId,
+          title: e.name,
+          location: e.location,
+          date: e.startDateTime,
+          time: formatTime(e.startDateTime, e.endDateTime, e.allDayChecked),
+          status: e.status,
+        }));
+
+        setEvents(mapped);
+      } catch (err) {
+        console.error(err);
+        setError(err.message || "Failed to load events");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEvents();
+  }, []);
 
   const handleCreate = () => navigate("/event/create");
-  const handleEditClick = (id) => navigate(`/event/edit/${id}`)
+  const handleEditClick = (id) => navigate(`/event/edit/${id}`);
+
+  const handleDeleteClick = async (id) => {
+    const ok = window.confirm("ต้องการลบ Event นี้หรือไม่?");
+    if (!ok) return;
+
+    setError("");
+    setDeletingId(id);
+    try {
+      const res = await deleteEvent(id); // { message: "Deleted" }
+      console.log("Delete result:", res);
+
+      // ลบออกจาก state ทันที
+      setEvents((prev) => prev.filter((e) => e.id !== id));
+    } catch (err) {
+      console.error(err);
+      setError(err.message || "Failed to delete event");
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -55,80 +101,106 @@ const EventListPage = () => {
         <Navbar title="Events List" />
 
         <div className="p-6">
-          {/* Search + Create */}
-          <div className="flex items-center justify-between mb-6">
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-              <input
-                type="text"
-                placeholder="Search events, location, date…"
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-
+          {/* Create */}
+          <div className="flex items-center justify-end mb-6">
             <button
               onClick={handleCreate}
-              className="ml-4 inline-flex items-center px-4 py-2 rounded-2xl bg-red-500 text-white hover:bg-red-600 transition"
+              className="inline-flex items-center px-4 py-2 rounded-2xl bg-red-500 text-white hover:bg-red-600 transition"
             >
               <Plus size={16} className="mr-2" />
               Create Events
             </button>
           </div>
 
+          {/* Error */}
+          {error && (
+            <div className="mb-4 rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+              {error}
+            </div>
+          )}
+
           {/* Table Card */}
           <div className="bg-white rounded-lg shadow">
-            <div className="max-h-[700px] overflow-y-auto rounded-xl">
-              <table className="w-full">
-                <thead className="bg-gray-50 sticky top-0 z-10">
-                  <tr>
-                    <th className="px-6 py-3 text-balance text-xs font-medium text-gray-500 uppercase tracking-wider">Event </th>
-                    <th className="px-6 py-3 text-balance text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
-                    <th className="px-6 py-3 text-balance text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                    <th className="px-6 py-3 text-balance text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
-                    <th className="px-6 py-3 text-balance text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {filtered.map((event) => (
-                    <tr key={event.id} className="hover:bg-gray-50">
-                      <td className="px-5 py-4 text-sm text-gray-900">
-                        <div className="flex items-center justify-center">
-                          <span className="font-medium">{event.title}</span>
-                        </div>
-                      </td>
-                      <td className="px-5 py-4 text-sm text-gray-700 text-center">{event.location}</td>
-                      <td className="px-5 py-4 text-sm text-gray-700 text-center">
-                        {formatDateToDDMMYYYY(event.date)}
-                      </td>
-                      <td className="px-5 py-4 text-sm text-gray-700 text-center">{event.time}</td>
-                      <td className="px-5 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-2 justify-center">
-                          <button
-                            type="button"
-                            onClick={() => handleEditClick(event.id)}
-                            className="px-2 py-2.5 rounded-xl transition-colors bg-[#8ecae647] text-black hover:bg-[#8ecae6d1]"
-                          >
-                            <Pen size={16} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-
-                  {filtered.length === 0 && (
+            {loading ? (
+              <div className="py-16 text-center text-gray-500 text-sm">
+                Loading events...
+              </div>
+            ) : (
+              <div className="max-h-[700px] overflow-y-auto rounded-xl">
+                <table className="w-full">
+                  <thead className="bg-gray-50 sticky top-0 z-10">
                     <tr>
-                      <td colSpan={4} className="px-5 py-10 text-center text-sm text-gray-500">
-                        No events found
-                      </td>
+                      <th className="px-6 py-3 text-balance text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Event
+                      </th>
+                      <th className="px-6 py-3 text-balance text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Location
+                      </th>
+                      <th className="px-6 py-3 text-balance text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Date
+                      </th>
+                      <th className="px-6 py-3 text-balance text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Time
+                      </th>
+                      <th className="px-6 py-3 text-balance text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Action
+                      </th>
                     </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {events.map((event) => (
+                      <tr key={event.id} className="hover:bg-gray-50">
+                        <td className="px-5 py-4 text-sm text-gray-900">
+                          <div className="flex items-center justify-center">
+                            <span className="font-medium">{event.title}</span>
+                          </div>
+                        </td>
+                        <td className="px-5 py-4 text-sm text-gray-700 text-center">
+                          {event.location}
+                        </td>
+                        <td className="px-5 py-4 text-sm text-gray-700 text-center">
+                          {formatDateToDDMMYYYY(event.date)}
+                        </td>
+                        <td className="px-5 py-4 text-sm text-gray-700 text-center">
+                          {event.time}
+                        </td>
+                        <td className="px-5 py-4 whitespace-nowrap">
+                          <div className="flex items-center gap-2 justify-center">
+                            <button
+                              type="button"
+                              onClick={() => handleEditClick(event.id)}
+                              className="px-2 py-2.5 rounded-xl transition-colors bg-[#DBEAFE] text-[#498EFF] hover:bg-[#b4d2f9] hover:text-white"
+                            >
+                              <Pen size={16} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteClick(event.id)}
+                              className="px-2 py-2.5 rounded-xl transition-colors bg-red-100 text-red-600 hover:bg-red-200 disabled:opacity-50"
+                              disabled={deletingId === event.id}
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
 
+                    {events.length === 0 && (
+                      <tr>
+                        <td
+                          colSpan={5}
+                          className="px-5 py-10 text-center text-sm text-gray-500"
+                        >
+                          No events found
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
