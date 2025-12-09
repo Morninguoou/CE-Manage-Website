@@ -118,25 +118,25 @@ const StudentListPage = () => {
               <table className="w-full">
                 <thead className="bg-gray-50 sticky top-0 z-10">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student ID</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Thai Name</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Eng Name</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Admission Year</th>
+                    <th className="px-6 py-3 text-balance text-xs font-medium text-gray-500 uppercase tracking-wider">Student ID</th>
+                    <th className="px-6 py-3 text-balance text-xs font-medium text-gray-500 uppercase tracking-wider">Thai Name</th>
+                    <th className="px-6 py-3 text-balance text-xs font-medium text-gray-500 uppercase tracking-wider">Eng Name</th>
+                    <th className="px-6 py-3 text-balance text-xs font-medium text-gray-500 uppercase tracking-wider">Admission Year</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {students.map((student) => (
                     <tr key={student.accId} className="hover:bg-gray-50">
-                      <td className="px-6 py-5 whitespace-nowrap text-sm font-medium text-gray-900">
+                      <td className="px-6 py-5 whitespace-nowrap text-center text-sm font-medium text-gray-900">
                         {student.accId}
                       </td>
-                      <td className="px-6 py-5 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-6 py-5 whitespace-nowrap text-center text-sm text-gray-900">
                         {student.fullname_th || "-"}
                       </td>
-                      <td className="px-6 py-5 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-6 py-5 whitespace-nowrap text-center text-sm text-gray-900">
                         {student.fullName_en || "-"}
                       </td>
-                      <td className="px-6 py-5 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-6 py-5 whitespace-nowrap text-center text-sm text-gray-900">
                         {student.year}
                       </td>
                     </tr>

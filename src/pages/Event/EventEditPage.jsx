@@ -2,18 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Navbar from "../../components/Navbar";
 import Sidebar from "../../components/Sidebar";
-
-// ===== mock data / utils (เปลี่ยนเป็นเรียก API จริงของคุณได้) =====
-const MOCK_EVENTS = [
-  { id: 1, title: "ส่งข้อสอบกลางภาค", location: "ECC-810", date: "2024-12-12", time: "09:00", allDay: false, sendAll: false, sentTo: "" },
-  { id: 2, title: "Lab Presentation", location: "ECC-811", date: "2024-12-13", time: "10:00", allDay: false, sendAll: false, sentTo: "" },
-];
-
-const TEACHERS = [
-  { id: "t1", name: "Dr. Alice" },
-  { id: "t2", name: "Dr. Bob" },
-  { id: "t3", name: "Prof. Carol" },
-];
+import { getEventList, editEvent } from "../../services/eventService";
 
 function toInputDate(d) {
   const dt = d instanceof Date ? d : new Date(d);
@@ -23,217 +12,308 @@ function toInputDate(d) {
   return `${yyyy}-${mm}-${dd}`;
 }
 
+function toInputTime(isoString) {
+  if (!isoString) return "09:00";
+  const dt = new Date(isoString);
+  const hh = String(dt.getHours()).padStart(2, "0");
+  const mm = String(dt.getMinutes()).padStart(2, "0");
+  return `${hh}:${mm}`;
+}
+
+function buildDateTime(dateStr, timeStr) {
+  if (!dateStr || !timeStr) return null;
+
+  // สร้าง Date จากเวลา local (เช่น เวลาไทย)
+  const local = new Date(`${dateStr}T${timeStr}:00`);
+
+  // แปลงเป็น ISO (UTC) สำหรับเก็บใน backend
+  return local.toISOString();
+}
+
+
 export default function EditEventPage() {
   const { id } = useParams();
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
   const [form, setForm] = useState({
-    title: "",
+    name: "",
     location: "",
     date: toInputDate(new Date()),
-    time: "09:00",
-    allDay: false,
-    sendAll: false,
-    sentTo: "",
+    startTime: "09:00",
+    endTime: "10:00",
+    allDayChecked: false,
+    status: 0,
   });
 
-  // โหลดข้อมูลเดิม (แทนที่ส่วนนี้ด้วย fetch API ของคุณ)
   useEffect(() => {
-    setLoading(true);
-    const event = MOCK_EVENTS.find((e) => String(e.id) === String(id));
-    if (event) {
-      setForm({
-        title: event.title || "",
-        location: event.location || "",
-        date: toInputDate(event.date || new Date()),
-        time: event.allDay ? "" : (event.time || "09:00"),
-        allDay: !!event.allDay,
-        sendAll: !!event.sendAll,
-        sentTo: event.sentTo || "",
-      });
-    }
-    setLoading(false);
+    const fetchEvent = async () => {
+      setLoading(true);
+      setError("");
+      setSuccess("");
+
+      try {
+        const events = await getEventList();
+        const event = events.find((e) => e.eventId === id);
+
+        if (!event) {
+          setError("Event not found");
+          setLoading(false);
+          return;
+        }
+
+        setForm({
+          name: event.name || "",
+          location: event.location || "",
+          date: toInputDate(event.startDateTime || new Date()),
+          startTime: event.allDayChecked
+            ? "09:00"
+            : toInputTime(event.startDateTime),
+          endTime: event.allDayChecked
+            ? "17:00"
+            : toInputTime(event.endDateTime),
+          allDayChecked: !!event.allDayChecked,
+          status: event.status ?? 0,
+        });
+      } catch (err) {
+        console.error(err);
+        setError(err.message || "Failed to load event");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEvent();
   }, [id]);
 
-  const isSubmitDisabled = useMemo(() => !form.title.trim(), [form.title]);
+  const isSubmitDisabled = useMemo(
+    () => !form.name.trim() || submitting,
+    [form.name, submitting]
+  );
 
   const onChange = (key) => (e) => {
-    const value = e.target.type === "checkbox" ? e.target.checked : e.target.value;
+    const value =
+      e.target.type === "checkbox" ? e.target.checked : e.target.value;
+
     setForm((prev) => {
-      if (key === "allDay" && value === true) return { ...prev, allDay: true, time: "" };
-      if (key === "sendAll" && value === true) return { ...prev, sendAll: true, sentTo: "" };
+      if (key === "allDayChecked" && value === true) {
+        // ถ้าเลือก All Day จะไม่ใช้ time
+        return {
+          ...prev,
+          allDayChecked: true,
+          startTime: "",
+          endTime: "",
+        };
+      }
+      if (key === "allDayChecked" && value === false) {
+        // เลิก All Day เอา default time กลับมาก็ได้
+        return {
+          ...prev,
+          allDayChecked: false,
+          startTime: prev.startTime || "09:00",
+          endTime: prev.endTime || "10:00",
+        };
+      }
+
       return { ...prev, [key]: value };
     });
   };
 
   const handleCancel = () => navigate("/eventslist");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const payload = {
-      id,
-      title: form.title.trim(),
-      location: form.location.trim(),
-      date: form.date,                       // YYYY-MM-DD
-      time: form.allDay ? null : form.time,  // null ถ้า all day
-      allDay: form.allDay,
-      sendAll: form.sendAll,
-      sentTo: form.sendAll ? [] : form.sentTo ? [form.sentTo] : [],
-    };
+    setSubmitting(true);
+    setError("");
+    setSuccess("");
 
-    // TODO: PUT/PATCH /events/:id
-    console.log("Update Event payload =>", payload);
+    try {
+      const startDateTime = form.allDayChecked
+        ? buildDateTime(form.date, "00:00")
+        : buildDateTime(form.date, form.startTime);
 
-    navigate("/eventslist");
+      const endDateTime = form.allDayChecked
+        ? buildDateTime(form.date, "23:59")
+        : buildDateTime(form.date, form.endTime);
+
+      const payload = {
+        eventId: id,
+        name: form.name.trim(),
+        location: form.location.trim(),
+        startDateTime,
+        endDateTime,
+        allDayChecked: form.allDayChecked,
+        status: form.status,
+      };
+
+      console.log("Edit Event payload =>", payload);
+
+      const res = await editEvent(payload); // { message: "Sucess Update" }
+      setSuccess(res.message || "Update success");
+
+      // กลับไปหน้า list หลังจากอัปเดตเสร็จ
+      navigate("/eventslist");
+    } catch (err) {
+      console.error(err);
+      setError(err.message || "Failed to update event");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (loading) {
     return (
       <div className="flex min-h-screen bg-gray-50">
-        <div className="flex h-screen"><Sidebar activeMenu="events" /></div>
-        <div className="flex-1"><Navbar title="Edit Event" /><div className="p-6">Loading…</div></div>
+        <Sidebar activeMenu="events" />
+        <div className="flex-1">
+          <Navbar title="Edit Event" />
+          <div className="p-6">Loading…</div>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      {/* Sidebar */}
-      <div className="flex h-screen">
-        <Sidebar activeMenu="events" />
-      </div>
+      <Sidebar activeMenu="events" />
 
-      {/* Main */}
-      <div className="flex-1">
+      <div className="flex-1 max-h-screen overflow-y-auto">
         <Navbar title="Edit Event" />
 
         <div className="p-6">
-          <div className="bg-white rounded-2xl shadow border border-gray-100">
-            <form onSubmit={handleSubmit} className="p-6 md:p-8">
-              {/* Header */}
-              <div className="mb-6">
-                <button type="button" className="px-3 py-1 text-sm border rounded-lg border-[#01399A]">
-                  Header
-                </button>
+          {/* Back link */}
+          <button
+            type="button"
+            onClick={handleCancel}
+            className="text-blue-600 hover:text-blue-800 mb-4 text-sm"
+          >
+            &larr; Back to List
+          </button>
 
-                <div className="mt-4 grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-                  <label className="md:col-span-2 text-sm text-gray-700">Event :</label>
-                  <input
-                    type="text"
-                    className="md:col-span-10 w-full rounded-xl border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
-                    value={form.title}
-                    onChange={onChange("title")}
-                    placeholder="Enter event name"
-                  />
-                </div>
+          {/* Error / Success */}
+          {error && (
+            <div className="mb-4 rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+              {error}
+            </div>
+          )}
+          {success && (
+            <div className="mb-4 rounded-lg bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-700">
+              {success}
+            </div>
+          )}
 
-                <div className="mt-3 grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-                  <label className="md:col-span-2 text-sm text-gray-700">Location :</label>
-                  <input
-                    type="text"
-                    className="md:col-span-10 w-full rounded-xl border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
-                    value={form.location}
-                    onChange={onChange("location")}
-                    placeholder="Room / Building"
-                  />
-                </div>
+          <form
+            onSubmit={handleSubmit}
+            className="bg-white rounded-2xl shadow-lg p-6"
+          >
+            {/* Event + Location */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-500 mb-2">
+                  Event :
+                </label>
+                <input
+                  type="text"
+                  className="w-full rounded-xl border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                  value={form.name}
+                  onChange={onChange("name")}
+                  placeholder="ชื่อกิจกรรม"
+                />
               </div>
 
-              {/* Time */}
-              <div className="mb-6">
-                <div className="flex items-center justify-between">
-                  <button type="button" className="px-3 py-1 text-sm border rounded-lg border-[#01399A]">
-                    Time
-                  </button>
+              <div>
+                <label className="block text-sm font-medium text-gray-500 mb-2">
+                  Location :
+                </label>
+                <input
+                  type="text"
+                  className="w-full rounded-xl border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                  value={form.location}
+                  onChange={onChange("location")}
+                  placeholder="เช่น ECC-810"
+                />
+              </div>
+            </div>
 
-                  <label className="flex items-center gap-2 text-sm">
-                    <span>All day</span>
-                    <input
-                      type="checkbox"
-                      className="h-4 w-4"
-                      checked={form.allDay}
-                      onChange={onChange("allDay")}
-                    />
+            {/* Date & Time + All day */}
+            <div className="mb-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-500 mb-2">
+                    Date
                   </label>
-                </div>
-
-                <div className="mt-4 grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-                  <label className="md:col-span-2 text-sm text-gray-700">Date:</label>
-
-                  {/* ถ้าใช้ CalendarInput ที่ทำไว้ก่อนหน้า ให้แทนบล็อก input นี้ด้วย <CalendarInput .../> */}
                   <input
                     type="date"
-                    className="md:col-span-6 w-full rounded-xl border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                    className="w-full rounded-xl border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
                     value={form.date}
                     onChange={onChange("date")}
                   />
+                </div>
+              </div>
 
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-500 mb-2">
+                    Start Time
+                  </label>
                   <input
                     type="time"
-                    className="md:col-span-4 w-full rounded-xl border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
-                    value={form.time}
-                    onChange={onChange("time")}
-                    disabled={form.allDay}
+                    className="w-full rounded-xl border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                    value={form.startTime}
+                    onChange={onChange("startTime")}
+                    disabled={form.allDayChecked}
                   />
                 </div>
-              </div>
 
-              {/* Share */}
-              <div className="mb-8">
-                <button type="button" className="px-3 py-1 text-sm border rounded-lg border-[#01399A]">
-                  Share
-                </button>
-
-                <div className="mt-4 grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-                  <label className="md:col-span-2 text-sm text-gray-700">Send to all teacher</label>
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-sm font-medium text-gray-500">
+                      End Time
+                    </label>
+                    <label className="flex items-center gap-2 text-sm text-gray-600">
+                      <span>All Day</span>
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4"
+                        checked={form.allDayChecked}
+                        onChange={onChange("allDayChecked")}
+                      />
+                    </label>
+                  </div>
                   <input
-                    type="checkbox"
-                    className="h-4 w-4 md:col-span-1"
-                    checked={form.sendAll}
-                    onChange={onChange("sendAll")}
+                    type="time"
+                    className="w-full rounded-xl border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                    value={form.endTime}
+                    onChange={onChange("endTime")}
+                    disabled={form.allDayChecked}
                   />
                 </div>
-
-                <div className="mt-3 grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-                  <label className="md:col-span-2 text-sm text-gray-700">Sent to</label>
-                  <select
-                    className="md:col-span-10 w-full rounded-xl border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
-                    value={form.sentTo}
-                    onChange={onChange("sentTo")}
-                    disabled={form.sendAll}
-                  >
-                    <option value="">Select teacher…</option>
-                    {TEACHERS.map((t) => (
-                      <option key={t.id} value={t.id}>
-                        {t.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
               </div>
+            </div>
 
-              {/* Actions */}
-              <div className="flex items-center justify-between">
-                <button
-                  type="button"
-                  onClick={handleCancel}
-                  className="px-6 py-2 rounded-2xl bg-red-500 text-white hover:bg-red-600"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitDisabled}
-                  className="px-6 py-2 rounded-2xl bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
-                >
-                  Submit
-                </button>
-              </div>
-            </form>
-          </div>
+            {/* Actions */}
+            <div className="flex items-center justify-between">
+              <button
+                type="button"
+                onClick={handleCancel}
+                className="px-6 py-2 rounded-2xl bg-red-500 text-white hover:bg-red-600"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmitDisabled}
+                className="px-6 py-2 rounded-2xl bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+              >
+                {submitting ? "Saving..." : "Save"}
+              </button>
+            </div>
+          </form>
         </div>
-
       </div>
     </div>
   );
