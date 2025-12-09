@@ -57,7 +57,7 @@ export default function LoginPage() {
           {/* CE Logo */}
           <div className="min-w-32 h-32 mx-auto mb-4">
             <img 
-              src="/src/assets/images/ce_icon.png" 
+              src="/src/assets/images/icon.png" 
               alt="CE Logo" 
               className="w-full h-full object-contain"
             />
