@@ -1,36 +1,67 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState, useRef } from "react";
 import Navbar from "../../components/Navbar";
 import Sidebar from '../../components/Sidebar';
-import { Search, FileText, Plus, } from 'lucide-react';
+import {FileText} from 'lucide-react';
+import { getStudentList, uploadStudentExcel } from "../../services/studentService";
 
 const StudentListPage = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const navigate = useNavigate();
+  const [students, setStudents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [uploadMessage, setUploadMessage] = useState("");
 
-  // Mock data for students
-  const students = [
-    { id: '65010000', name: 'Somchai', lastname: 'Pakpean' },
-    { id: '65010000', name: 'Somchai', lastname: 'Pakpean' },
-    { id: '65010000', name: 'Somchai', lastname: 'Pakpean' },
-    { id: '65010000', name: 'Somchai', lastname: 'Pakpean' },
-    { id: '65010000', name: 'Somchai', lastname: 'Pakpean' },
-    { id: '65010000', name: 'Somchai', lastname: 'Pakpean' },
-    { id: '65010000', name: 'Somchai', lastname: 'Pakpean' },
-    { id: '65010000', name: 'Somchai', lastname: 'Pakpean' },
-    { id: '65010000', name: 'Somchai', lastname: 'Pakpean' },
-    { id: '65010000', name: 'Somchai', lastname: 'Pakpean' },
-    { id: '65010000', name: 'Somchai', lastname: 'Pakpean' },
-    { id: '65010000', name: 'Somchai', lastname: 'Pakpean' }
-  ];
+  const fileInputRef = useRef(null);
 
-  const handleDetail = () => {
-    // navigate(`/subjects/${subject.id}`, { state: { subject } });
-    console.log("student detail");
+  const fetchStudents = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const data = await getStudentList();
+      setStudents(data || []);
+    } catch (err) {
+      setError(err.message || "Failed to load student list");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleAddNew = () => {
-    navigate("/subjects/create");
+  useEffect(() => {
+    fetchStudents();
+  }, []);
+
+  useEffect(() => {
+    if (!uploadMessage) return;
+
+    const timer = setTimeout(() => {
+      setUploadMessage("");
+    }, 5000);
+
+    return () => clearTimeout(timer);
+  }, [uploadMessage]);
+
+  const handleClickExcelButton = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    setUploadMessage("");
+    setError("");
+
+    try {
+      await uploadStudentExcel(file);
+      setUploadMessage("Upload Excel สำเร็จ และกำลังโหลดข้อมูลใหม่...");
+      await fetchStudents(); // refresh list
+    } catch (err) {
+      setError(err.message || "Upload Excel ล้มเหลว");
+    } finally {
+      setUploading(false);
+      e.target.value = "";
+    }
   };
 
   return (
@@ -42,30 +73,44 @@ const StudentListPage = () => {
 
         {/* Search and Actions */}
         <div className="p-6">
-          <div className="flex items-center justify-between mb-6">
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+          <div className="flex items-center justify-end mb-6">
+            <div className="flex space-x-3 ml-4">
+              <button 
+                onClick={handleClickExcelButton}
+                disabled={uploading}
+                className="flex items-center px-4 py-2 bg-[#28C195] text-white rounded-2xl hover:bg-green-600 transition-colors"
+                >
+                <FileText size={16} className="mr-2" />
+                {uploading ? "Uploading..." : "Excel"}
+              </button>
+              {/* hidden file input */}
               <input
-                type="text"
-                placeholder="Search by Student ID"
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                ref={fileInputRef}
+                type="file"
+                accept=".xlsx,.xls"
+                className="hidden"
+                onClick={(e) => {
+                  e.currentTarget.value = "";
+                }}
+                onChange={handleFileChange}
               />
             </div>
-            <div className="flex space-x-3 ml-4">
-              <button className="flex items-center px-4 py-2 bg-[#28C195] text-white rounded-2xl hover:bg-green-600 transition-colors">
-                <FileText size={16} className="mr-2" />
-                Excel
-              </button>
-              <button 
-                onClick={handleAddNew}
-                className="flex items-center px-4 py-2 bg-red-500 text-white rounded-2xl hover:bg-red-600 transition-colors">
-                <Plus size={16} className="mr-2" />
-                Add New
-              </button>
-            </div>
           </div>
+
+          {/* Error / Upload message / Loading */}
+          {error && (
+            <div className="mb-4 rounded-md bg-red-50 px-4 py-3 text-sm text-red-700">
+              {error}
+            </div>
+          )}
+          {uploadMessage && (
+            <div className="mb-4 rounded-md bg-green-50 px-4 py-3 text-sm text-green-700">
+              {uploadMessage}
+            </div>
+          )}
+          {loading && (
+            <div className="mb-4 text-sm text-gray-500">Loading students...</div>
+          )}
 
           {/* Table */}
           <div className="bg-white rounded-lg shadow">
@@ -74,28 +119,39 @@ const StudentListPage = () => {
                 <thead className="bg-gray-50 sticky top-0 z-10">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student ID</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Thai Name</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Eng Name</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Admission Year</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {students.map((student, index) => (
-                    <tr key={index} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {student.id}
+                  {students.map((student) => (
+                    <tr key={student.accId} className="hover:bg-gray-50">
+                      <td className="px-6 py-5 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {student.accId}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {student.name} {student.lastname}
+                      <td className="px-6 py-5 whitespace-nowrap text-sm text-gray-900">
+                        {student.fullname_th || "-"}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <button
-                          onClick={() => handleDetail(student)}
-                          className="bg-blue-100 text-blue-700 px-4 py-2 rounded-xl text-sm font-medium hover:bg-blue-200 transition-colors">
-                          Detail
-                        </button>
+                      <td className="px-6 py-5 whitespace-nowrap text-sm text-gray-900">
+                        {student.fullName_en || "-"}
+                      </td>
+                      <td className="px-6 py-5 whitespace-nowrap text-sm text-gray-900">
+                        {student.year}
                       </td>
                     </tr>
                   ))}
+
+                  {!loading && !error && students.length === 0 && (
+                    <tr>
+                      <td
+                        colSpan={4}
+                        className="px-6 py-5 text-center text-sm text-gray-500"
+                      >
+                        No students found.
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
