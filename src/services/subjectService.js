@@ -7,3 +7,13 @@ export const importSubjectFile = (formData) => {
     },
   });
 };
+
+export const getSubjects = () => {
+  return apiClient.get("/subject/GetSubject");
+};
+
+export const getSubjectById = (subjectId) => {
+  return apiClient.get("/subject/GetSubject", {
+    params: { subjectId },
+  });
+};
