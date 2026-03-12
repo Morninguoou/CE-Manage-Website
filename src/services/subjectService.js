@@ -7,3 +7,26 @@ export const importSubjectFile = (formData) => {
     },
   });
 };
+
+export const getSubjects = () => {
+  return apiClient.get("/subject/GetSubject");
+};
+
+export const getSubjectById = (subjectId) => {
+  return apiClient.get("/subject/GetSubject", {
+    params: { subjectId },
+  });
+};
+
+export const upsertSubject = (payload) => {
+  return apiClient.post("/subject/upsertSubject", payload);
+};
+
+export const deleteSubject = (subjectId, curriculumYear) => {
+  return apiClient.delete("/subject/DeleteSubject", {
+    params: {
+      subjectId,
+      curriculumYear,
+    },
+  });
+};

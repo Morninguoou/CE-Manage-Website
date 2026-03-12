@@ -238,21 +238,21 @@ const FacultyMemberAddPage = () => {
               </div>
             </div>
 
-            <div className="flex justify-end space-x-4">
+            <div className="flex justify-between space-x-4">
               <button
                 type="button"
                 onClick={handleBack}
-                className="px-6 py-2 border border-gray-300 text-gray-700 rounded-2xl hover:bg-gray-50 transition-colors"
+                className="px-6 py-2 border border-gray-300 rounded-2xl  bg-red-500 text-white hover:bg-red-600"
               >
-                ยกเลิก
+                cancel
               </button>
               <button
                 type="submit"
                 disabled={saving}
-                className="flex items-center px-6 py-2 bg-[#28C195] text-white rounded-2xl hover:bg-green-600 disabled:opacity-60"
+                className="flex items-center px-6 py-2 rounded-2xl bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
               >
                 <Save size={16} className="mr-2" />
-                {saving ? "กำลังบันทึก..." : "บันทึกข้อมูล"}
+                {saving ? "Saving..." : "Save"}
               </button>
             </div>
           </form>

@@ -81,7 +81,7 @@ const StudentListPage = () => {
                 className="flex items-center px-4 py-2 bg-[#28C195] text-white rounded-2xl hover:bg-green-600 transition-colors"
                 >
                 <FileText size={16} className="mr-2" />
-                {uploading ? "Uploading..." : "Excel"}
+                {uploading ? "Uploading..." : "Upload Excel"}
               </button>
               {/* hidden file input */}
               <input

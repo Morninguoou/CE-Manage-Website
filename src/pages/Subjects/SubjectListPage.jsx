@@ -1,13 +1,16 @@
-import React, { useState,} from 'react';
+import React, { useEffect, useState,} from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from "../../components/Navbar";
 import Sidebar from '../../components/Sidebar';
 import {FileText, Plus, Trash2, Upload, Sparkles } from 'lucide-react';
-import { importSubjectFile } from "../../services/subjectService";
+import { getSubjects, importSubjectFile, deleteSubject } from "../../services/subjectService";
 
 const SubjectListPage = () => {
-  const [openExcelModal, setOpenExcelModal] = useState(false);
+  const [openUploadFileModal, setOpenUploadFileModal] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
+  const [subjects, setSubjects] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const fileInputRef = React.useRef(null);
   const navigate = useNavigate();
 
@@ -22,33 +25,28 @@ const SubjectListPage = () => {
     student_year: '',
   });
 
+  const fetchSubjects = async () => {
+    try {
+      setLoading(true);
+      const res = await getSubjects();
+      setSubjects(res.data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  // Mock data for subjects
-  const subjects = [
-    { id: '01076036', credit: '2(2-0-4)', name: 'USER EXPERIENCE AND USER INTERFACE DESIGN', type: 'บังคับ', status: 'บังคับเลือก', prerequisite: "01076105 OBJECT ORIENTED PROGRAMMING", year: '64',
-      platform: "Google Classroom",
-      detail_th:
-        "วิชานี้แนะนำขั้นตอนของการออกแบบประสบการณ์และการออกแบบส่วนติดต่อผู้ใช้งาน โดยจะมีจุดมุ่งหมายให้นักศึกษาได้คุ้นเคยกับแนวคิด วิธีปฏิบัติ และเทคนิคที่จำเป็นในการสร้างประสบการณ์ของผู้ใช้งาน ซึ่งเป็นส่วนหนึ่งของการพัฒนาการเชื่อมโยงข่าวสาร วิชานี้จะให้นักศึกษาได้มีโอกาสในการค้นหาทรัพยากร พัฒนาทักษะ และฝึกปฏิบัติที่จำเป็นต่อการออกแบบ พัฒนาและประเมินส่วนติดต่อข้อมูลจากมุมมองของผู้ใช้งาน",
-      detail_en:
-        "This course provides a comprehensive overview of the user experience and user interface design process, and is intended to familiarize students with the methods, concepts, and techniques necessary to make user experience design an integral part of developing information interfaces. The course provides students with an opportunity to acquire the resources, skills, and hands -on experience they need to design, develop, and evaluate information interfaces from a user -centered design perspective.", },
-    { id: '01076036', credit: '2(2-0-4)', name: 'USER EXPERIENCE AND USER INTERFACE DESIGN', type: 'บังคับ', status: 'บังคับ', year: '64' },
-    { id: '01076036', credit: '2(2-0-4)', name: 'USER EXPERIENCE AND USER INTERFACE DESIGN', type: 'เลือกเฉพาะสาขา', status: 'บังคับ', year: '64' },
-    { id: '01076036', credit: '2(2-0-4)', name: 'USER EXPERIENCE AND USER INTERFACE DESIGN', type: 'บังคับเลือก', status: 'เลือกเฉพาะสาขา', year: '64' },
-    { id: '01076036', credit: '2(2-0-4)', name: 'USER EXPERIENCE AND USER INTERFACE DESIGN', type: 'บังคับเลือก', status: 'บังคับ', year: '64' },
-    { id: '01076036', credit: '2(2-0-4)', name: 'USER EXPERIENCE AND USER INTERFACE DESIGN', type: 'เลือกเฉพาะสาขา', status: 'บังคับ', year: '64' },
-    { id: '01076036', credit: '2(2-0-4)', name: 'USER EXPERIENCE AND USER INTERFACE DESIGN', type: 'บังคับ', status: 'บังคับเลือก', year: '64' },
-    { id: '01076036', credit: '2(2-0-4)', name: 'USER EXPERIENCE AND USER INTERFACE DESIGN', type: 'เลือกเฉพาะสาขา', status: 'บังคับ', year: '64' },
-    { id: '01076036', credit: '2(2-0-4)', name: 'USER EXPERIENCE AND USER INTERFACE DESIGN', type: 'เลือกเฉพาะสาขา', status: 'บังคับ', year: '64' },
-    { id: '01076036', credit: '2(2-0-4)', name: 'USER EXPERIENCE AND USER INTERFACE DESIGN', type: 'เลือกเฉพาะสาขา', status: 'บังคับ', year: '64' },
-    { id: '01076036', credit: '2(2-0-4)', name: 'USER EXPERIENCE AND USER INTERFACE DESIGN', type: 'เลือกเฉพาะสาขา', status: 'บังคับ', year: '64' },
-    { id: '01076036', credit: '2(2-0-4)', name: 'USER EXPERIENCE AND USER INTERFACE DESIGN', type: 'บังคับ', status: 'เลือกเฉพาะสาขา', year: '64' }
-  ];
+  useEffect(() => {
+    fetchSubjects();
+  }, []);
+
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'บังคับ': return 'text-[#0070DC] font-bold border border-blue-300';
-      case 'บังคับเลือก': return 'text-[#D02D2D] font-bold border border-red-300';
-      case 'เลือกเฉพาะสาขา': return 'text-[#FFC554] font-bold border border-yellow-300';
+      case 'วิชาบังคับ': return 'text-[#0070DC] font-bold border border-blue-300';
+      case 'วิชาบังคับเลือก': return 'text-[#D02D2D] font-bold border border-red-300';
+      case 'วิชาเลือกเฉพาะสาขา': return 'text-[#FFC554] font-bold border border-yellow-300';
       default: return 'text-gray-700 border border-gray-300';
     }
   };
@@ -72,8 +70,9 @@ const SubjectListPage = () => {
 
     try {
       await importSubjectFile(formData);
+      await fetchSubjects();
       alert("Import สำเร็จ 🎉");
-      setOpenExcelModal(false);
+      setOpenUploadFileModal(false);
     } catch (err) {
       alert(err.message);
     }
@@ -95,13 +94,34 @@ const SubjectListPage = () => {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleDetail = (subject) => {
-    navigate(`/subjects/${subject.id}`, { state: { subject } });
+  const handleDelete = async (subject) => {
+    const confirmDelete = window.confirm(
+      `คุณต้องการลบวิชา ${subject.subjectId} ใช่หรือไม่ ?`
+    );
+  
+    if (!confirmDelete) return;
+  
+    try {
+      await deleteSubject(subject.subjectId, subject.year);
+    
+      alert("ลบข้อมูลสำเร็จ 🗑️");
+    
+      await fetchSubjects();
+    } catch (err) {
+      alert(err.message || "ลบข้อมูลไม่สำเร็จ");
+    }
   };
 
-  const handleAddNew = () => {
-    navigate("/subjects/create");
+
+  const handleDetail = (subject) => {
+    navigate(`/subjects/${subject.subjectId}`,{ 
+      state: { subject }
+    });
   };
+
+  // const handleAddNew = () => {
+  //   navigate("/subjects/create");
+  // };
 
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -115,18 +135,18 @@ const SubjectListPage = () => {
           <div className="flex items-center justify-end mb-6">
             <div className="flex space-x-3 ml-4">
               <button 
-                onClick={() => setOpenExcelModal(true)}
+                onClick={() => setOpenUploadFileModal(true)}
                 className="flex items-center px-4 py-2 bg-[#28C195] text-white rounded-2xl hover:bg-green-600 transition-colors"
                 >
                   <FileText size={16} className="mr-2" />
-                  Excel
+                  Upload Doc
               </button>
-              <button 
+              {/* <button 
                 onClick={handleAddNew}
                 className="flex items-center px-4 py-2 bg-red-500 text-white rounded-2xl hover:bg-red-600 transition-colors">
                 <Plus size={16} className="mr-2" />
                 Add New
-              </button>
+              </button> */}
             </div>
           </div>
 
@@ -145,20 +165,33 @@ const SubjectListPage = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {subjects.map((subject, index) => (
+                  {loading && (
+                    <tr>
+                      <td colSpan="6" className="text-center py-6">Loading...</td>
+                    </tr>
+                  )}
+
+                  {error && (
+                    <tr>
+                      <td colSpan="6" className="text-center py-6 text-red-500">
+                        {error}
+                      </td>
+                    </tr>
+                  )}
+                  {!loading && subjects.map((subject, index) => (
                     <tr key={index} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium text-gray-900">
-                        {subject.id}
+                        {subject.subjectId}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">
                         {subject.credit}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">
-                        {subject.name}
+                        {subject.name_en}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
-                        <span className={`inline-flex px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(subject.status)}`}>
-                          {subject.status}
+                        <span className={`inline-flex px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(subject.type)}`}>
+                          {subject.type || "วิชาแกน"}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">
@@ -173,7 +206,7 @@ const SubjectListPage = () => {
                         </button>
                         <button
                             type="button"
-                            onClick={() => {}}
+                            onClick={() => handleDelete(subject)}
                             className="px-2 py-2.5 rounded-xl transition-colors bg-red-100 text-red-600 hover:bg-red-200"
                           >
                             <Trash2 size={16} />
@@ -188,7 +221,7 @@ const SubjectListPage = () => {
           </div>
         </div>
       </div>
-      {openExcelModal && (
+      {openUploadFileModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="bg-white rounded-2xl w-full max-w-3xl p-6 relative">
 
@@ -307,7 +340,7 @@ const SubjectListPage = () => {
             {/* Actions */}
             <div className="flex justify-between gap-3 mt-6">
               <button
-                onClick={() => setOpenExcelModal(false)}
+                onClick={() => setOpenUploadFileModal(false)}
                 className="px-4 py-2 rounded-xl border bg-red-500 text-white hover:bg-red-600"
               >
                 Cancel
@@ -322,7 +355,7 @@ const SubjectListPage = () => {
 
             {/* Close Icon */}
             <button
-              onClick={() => setOpenExcelModal(false)}
+              onClick={() => setOpenUploadFileModal(false)}
               className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
             >
               ✕
