@@ -3,10 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from "../../components/Navbar";
 import Sidebar from '../../components/Sidebar';
 import {FileText, Plus, Trash2, Upload, Sparkles } from 'lucide-react';
-import { getSubjects, importSubjectFile } from "../../services/subjectService";
+import { getSubjects, importSubjectFile, deleteSubject } from "../../services/subjectService";
 
 const SubjectListPage = () => {
-  const [openExcelModal, setOpenExcelModal] = useState(false);
+  const [openUploadFileModal, setOpenUploadFileModal] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -72,7 +72,7 @@ const SubjectListPage = () => {
       await importSubjectFile(formData);
       await fetchSubjects();
       alert("Import สำเร็จ 🎉");
-      setOpenExcelModal(false);
+      setOpenUploadFileModal(false);
     } catch (err) {
       alert(err.message);
     }
@@ -94,13 +94,34 @@ const SubjectListPage = () => {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleDetail = (subject) => {
-    navigate(`/subjects/${subject.subjectId}`);
+  const handleDelete = async (subject) => {
+    const confirmDelete = window.confirm(
+      `คุณต้องการลบวิชา ${subject.subjectId} ใช่หรือไม่ ?`
+    );
+  
+    if (!confirmDelete) return;
+  
+    try {
+      await deleteSubject(subject.subjectId, subject.year);
+    
+      alert("ลบข้อมูลสำเร็จ 🗑️");
+    
+      await fetchSubjects();
+    } catch (err) {
+      alert(err.message || "ลบข้อมูลไม่สำเร็จ");
+    }
   };
 
-  const handleAddNew = () => {
-    navigate("/subjects/create");
+
+  const handleDetail = (subject) => {
+    navigate(`/subjects/${subject.subjectId}`,{ 
+      state: { subject }
+    });
   };
+
+  // const handleAddNew = () => {
+  //   navigate("/subjects/create");
+  // };
 
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -114,18 +135,18 @@ const SubjectListPage = () => {
           <div className="flex items-center justify-end mb-6">
             <div className="flex space-x-3 ml-4">
               <button 
-                onClick={() => setOpenExcelModal(true)}
+                onClick={() => setOpenUploadFileModal(true)}
                 className="flex items-center px-4 py-2 bg-[#28C195] text-white rounded-2xl hover:bg-green-600 transition-colors"
                 >
                   <FileText size={16} className="mr-2" />
-                  Excel
+                  Upload Doc
               </button>
-              <button 
+              {/* <button 
                 onClick={handleAddNew}
                 className="flex items-center px-4 py-2 bg-red-500 text-white rounded-2xl hover:bg-red-600 transition-colors">
                 <Plus size={16} className="mr-2" />
                 Add New
-              </button>
+              </button> */}
             </div>
           </div>
 
@@ -185,7 +206,7 @@ const SubjectListPage = () => {
                         </button>
                         <button
                             type="button"
-                            onClick={() => {}}
+                            onClick={() => handleDelete(subject)}
                             className="px-2 py-2.5 rounded-xl transition-colors bg-red-100 text-red-600 hover:bg-red-200"
                           >
                             <Trash2 size={16} />
@@ -200,7 +221,7 @@ const SubjectListPage = () => {
           </div>
         </div>
       </div>
-      {openExcelModal && (
+      {openUploadFileModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="bg-white rounded-2xl w-full max-w-3xl p-6 relative">
 
@@ -319,7 +340,7 @@ const SubjectListPage = () => {
             {/* Actions */}
             <div className="flex justify-between gap-3 mt-6">
               <button
-                onClick={() => setOpenExcelModal(false)}
+                onClick={() => setOpenUploadFileModal(false)}
                 className="px-4 py-2 rounded-xl border bg-red-500 text-white hover:bg-red-600"
               >
                 Cancel
@@ -334,7 +355,7 @@ const SubjectListPage = () => {
 
             {/* Close Icon */}
             <button
-              onClick={() => setOpenExcelModal(false)}
+              onClick={() => setOpenUploadFileModal(false)}
               className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
             >
               ✕

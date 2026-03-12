@@ -17,3 +17,16 @@ export const getSubjectById = (subjectId) => {
     params: { subjectId },
   });
 };
+
+export const upsertSubject = (payload) => {
+  return apiClient.post("/subject/upsertSubject", payload);
+};
+
+export const deleteSubject = (subjectId, curriculumYear) => {
+  return apiClient.delete("/subject/DeleteSubject", {
+    params: {
+      subjectId,
+      curriculumYear,
+    },
+  });
+};

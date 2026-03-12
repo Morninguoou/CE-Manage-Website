@@ -47,7 +47,10 @@ const Sidebar = ({ activeMenu }) => {
       </div>
 
       <div className="absolute bottom-6 left-6">
-        <div className="flex items-center px-12 text-white hover:text-blue-200 cursor-pointer">
+        <div
+          onClick={() => navigate('/')}
+          className="flex items-center px-12 text-white hover:text-blue-200 cursor-pointer"
+        >
           <div className="w-6 h-6 mr-3">
             <svg viewBox="0 0 24 24" fill="currentColor">
               <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.59L17 17l5-5z"/>
