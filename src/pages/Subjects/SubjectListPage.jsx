@@ -4,6 +4,7 @@ import Navbar from "../../components/Navbar";
 import Sidebar from '../../components/Sidebar';
 import {FileText, Plus, Trash2, Upload, Sparkles } from 'lucide-react';
 import { getSubjects, importSubjectFile, deleteSubject } from "../../services/subjectService";
+import CronScheduleModal from '../../components/CronScheduleModal';
 
 const SubjectListPage = () => {
   const [openUploadFileModal, setOpenUploadFileModal] = useState(false);
@@ -11,6 +12,7 @@ const SubjectListPage = () => {
   const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [openScheduleModal, setOpenScheduleModal] = useState(false);
   const fileInputRef = React.useRef(null);
   const navigate = useNavigate();
 
@@ -125,7 +127,10 @@ const SubjectListPage = () => {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <Sidebar activeMenu="subjects" /> {/* Sidebar */}
+      <Sidebar 
+        activeMenu="subjects"
+        onOpenSchedule={() => setOpenScheduleModal(true)}
+      /> {/* Sidebar */}
       {/* Main Content */}
       <div className="flex-1">
         <Navbar title="Subjects List" /> {/* Navbar */}
@@ -141,12 +146,6 @@ const SubjectListPage = () => {
                   <FileText size={16} className="mr-2" />
                   Upload Doc
               </button>
-              {/* <button 
-                onClick={handleAddNew}
-                className="flex items-center px-4 py-2 bg-red-500 text-white rounded-2xl hover:bg-red-600 transition-colors">
-                <Plus size={16} className="mr-2" />
-                Add New
-              </button> */}
             </div>
           </div>
 
@@ -363,6 +362,10 @@ const SubjectListPage = () => {
           </div>
         </div>
       )}
+      <CronScheduleModal
+        open={openScheduleModal}
+        onClose={() => setOpenScheduleModal(false)}
+      />
     </div>
   );
 };

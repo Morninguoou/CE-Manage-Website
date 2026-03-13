@@ -3,6 +3,7 @@ import Navbar from "../../components/Navbar";
 import Sidebar from '../../components/Sidebar';
 import {FileText} from 'lucide-react';
 import { getStudentList, uploadStudentExcel } from "../../services/studentService";
+import CronScheduleModal from '../../components/CronScheduleModal';
 
 const StudentListPage = () => {
   const [students, setStudents] = useState([]);
@@ -10,6 +11,7 @@ const StudentListPage = () => {
   const [error, setError] = useState("");
   const [uploading, setUploading] = useState(false);
   const [uploadMessage, setUploadMessage] = useState("");
+  const [openScheduleModal, setOpenScheduleModal] = useState(false);
 
   const fileInputRef = useRef(null);
 
@@ -66,7 +68,10 @@ const StudentListPage = () => {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <Sidebar activeMenu="subjects" /> {/* Sidebar */}
+      <Sidebar 
+        activeMenu="studentslist"
+        onOpenSchedule={() => setOpenScheduleModal(true)}
+      /> {/* Sidebar */}
       {/* Main Content */}
       <div className="flex-1">
         <Navbar title="Subjects List" /> {/* Navbar */}
@@ -158,6 +163,10 @@ const StudentListPage = () => {
           </div>
         </div>
       </div>
+      <CronScheduleModal
+        open={openScheduleModal}
+        onClose={() => setOpenScheduleModal(false)}
+      />
     </div>
   );
 };

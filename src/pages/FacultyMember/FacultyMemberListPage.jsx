@@ -4,11 +4,13 @@ import Navbar from "../../components/Navbar";
 import Sidebar from '../../components/Sidebar';
 import { Search, Plus,Trash2 } from 'lucide-react';
 import { getFacultyMembers, deleteFacultyMember } from '../../services/facultyService';
+import CronScheduleModal from '../../components/CronScheduleModal';
 
 const FacultyMemberListPage = () => {
   const [searchTerm] = useState('');
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [openScheduleModal, setOpenScheduleModal] = useState(false);
   const [err, setErr] = useState("");
   const navigate = useNavigate();
   const location = useLocation();
@@ -64,7 +66,10 @@ const FacultyMemberListPage = () => {
   return (
     <div className="flex min-h-screen bg-gray-50">
       <div className="flex h-screen">
-        <Sidebar activeMenu="subjects" /> {/* Sidebar */}
+        <Sidebar 
+          activeMenu="facultymemberslist"
+          onOpenSchedule={() => setOpenScheduleModal(true)}
+        /> {/* Sidebar */}
       </div>
       {/* Main Content */}
       <div className="flex-1">
@@ -159,6 +164,10 @@ const FacultyMemberListPage = () => {
           )}
         </div>
       </div>
+      <CronScheduleModal
+        open={openScheduleModal}
+        onClose={() => setOpenScheduleModal(false)}
+      />
     </div>
   );
 };

@@ -3,6 +3,7 @@ import { useBackendStatus, useFileUpload, useOCR } from '../../hooks/ocr'
 import { Header, UploadSection, ResultSection, CompareModal } from '../../components/ocr'
 import Sidebar from '../../components/Sidebar'
 import { configurePDFWorker } from '../../config/ocr/pdf'
+import CronScheduleModal from '../../components/CronScheduleModal';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css'
 import 'react-pdf/dist/esm/Page/TextLayer.css'
 
@@ -11,6 +12,7 @@ function OCRUploadPage() {
   const { file, fileUrl, fileInputRef, fileError, handleFileChange, resetFile } = useFileUpload()
   const { extracting, storing, result, error, extractText, processAndStoreText, reset: resetOCR } = useOCR()
   const [showCompare, setShowCompare] = useState(false)
+  const [openScheduleModal, setOpenScheduleModal] = useState(false);
 
   // Configure PDF worker on mount
   useEffect(() => {
@@ -70,7 +72,7 @@ function OCRUploadPage() {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <Sidebar activeMenu="cegpt" />
+      <Sidebar activeMenu="cegpt" onOpenSchedule={() => setOpenScheduleModal(true)}/>
       <div className="flex-1 flex flex-col overflow-hidden">
         <div className="h-screen overflow-hidden bg-gradient-to-br from-blue-50 via-white to-orange-50 flex flex-col">
           <Header backendStatus={backendStatus} />
@@ -103,6 +105,10 @@ function OCRUploadPage() {
           />
         </div>
       </div>
+      <CronScheduleModal
+        open={openScheduleModal}
+        onClose={() => setOpenScheduleModal(false)}
+      />
     </div>
   )
 }

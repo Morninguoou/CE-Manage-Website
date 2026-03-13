@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LayoutGrid, BookText, CalendarClock, User, BriefcaseBusiness, Bot } from 'lucide-react';
 
-const Sidebar = ({ activeMenu }) => {
+const Sidebar = ({ activeMenu, onOpenSchedule }) => {
   const navigate = useNavigate();
 
   const menus = [
@@ -11,6 +11,7 @@ const Sidebar = ({ activeMenu }) => {
     { name: 'Events List', icon: CalendarClock, key: 'eventslist' },
     { name: 'Faculty Member', icon: BriefcaseBusiness, key: 'facultymemberslist' },
     { name: 'Student', icon: User, key: 'studentslist' },
+    { name: 'Schedule', icon: CalendarClock, key: 'schedule' },
     { name: 'CE-GPT', icon: Bot, key: 'cegpt' },
   ];
 
@@ -37,7 +38,13 @@ const Sidebar = ({ activeMenu }) => {
               className={`flex items-center p-3 rounded-lg transition-colors cursor-pointer ${
                 activeMenu === menu.key ? 'bg-blue-400' : 'hover:bg-blue-400'
               }`}
-              onClick={() => navigate(`/${menu.key}`)}
+              onClick={() => {
+                if (menu.key === "schedule") {
+                  onOpenSchedule?.();
+                } else {
+                  navigate(`/${menu.key}`);
+                }
+              }}
             >
               <menu.icon className="w-6 h-6 mr-3" />
               <span>{menu.name}</span>

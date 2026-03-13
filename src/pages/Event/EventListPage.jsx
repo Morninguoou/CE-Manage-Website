@@ -4,6 +4,7 @@ import Navbar from "../../components/Navbar";
 import Sidebar from "../../components/Sidebar";
 import { Plus, Pen, Trash2 } from "lucide-react";
 import { getEventList, deleteEvent } from "../../services/eventService";
+import CronScheduleModal from '../../components/CronScheduleModal';
 
 function formatDateToDDMMYYYY(iso) {
   const d = new Date(iso);
@@ -33,6 +34,7 @@ const EventListPage = () => {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [openScheduleModal, setOpenScheduleModal] = useState(false);
   const [deletingId, setDeletingId] = useState(null); // สำหรับ disable ปุ่มระหว่างลบ
 
   const navigate = useNavigate();
@@ -93,7 +95,10 @@ const EventListPage = () => {
     <div className="flex min-h-screen bg-gray-50">
       {/* Sidebar */}
       <div className="flex h-screen">
-        <Sidebar activeMenu="events" />
+        <Sidebar 
+          activeMenu="eventslist"
+          onOpenSchedule={() => setOpenScheduleModal(true)}
+        /> {/* Sidebar */}
       </div>
 
       {/* Main */}
@@ -200,6 +205,10 @@ const EventListPage = () => {
                 </table>
               </div>
             )}
+            <CronScheduleModal
+              open={openScheduleModal}
+              onClose={() => setOpenScheduleModal(false)}
+            />
           </div>
         </div>
       </div>
