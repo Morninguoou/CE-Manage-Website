@@ -46,7 +46,7 @@ export default function LoginPage() {
         {/* Background*/}
         <div className="absolute inset-0 opacity-30">
           <img 
-            src="/src/assets/images/mainPageBG.png" 
+            src="/mainPageBG.png" 
             alt="Background Pattern" 
             className="w-full h-full object-cover"
           />
@@ -57,7 +57,7 @@ export default function LoginPage() {
           {/* CE Logo */}
           <div className="min-w-32 h-32 mx-auto mb-4">
             <img 
-              src="/src/assets/images/icon.png" 
+              src="/ce-logo.png" 
               alt="CE Logo" 
               className="w-full h-full object-contain"
             />

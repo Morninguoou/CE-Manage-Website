@@ -54,7 +54,7 @@ export const processAndStore = async (text, filename, options = {}) => {
  * Get statistics about the vector database
  */
 export const getVectorStatistics = async () => {
-  const response = await apiClient.get('/api/vector/statistics')
+  const response = await apiClient.get('/api/ocr/vector/statistics')
   return response.data
 }
 
@@ -66,7 +66,7 @@ export const listDocuments = async (limit = 100, offset = 0, filename = null) =>
   if (filename) {
     params.filename = filename
   }
-  const response = await apiClient.get('/api/vector/documents', { params })
+  const response = await apiClient.get('/api/ocr/vector/documents', { params })
   return response.data
 }
 
@@ -74,7 +74,7 @@ export const listDocuments = async (limit = 100, offset = 0, filename = null) =>
  * Get a specific document with its chunks
  */
 export const getDocument = async (documentId) => {
-  const response = await apiClient.get(`/api/vector/documents/${documentId}`)
+  const response = await apiClient.get(`/api/ocr/vector/documents/${documentId}`)
   return response.data
 }
 
@@ -82,7 +82,7 @@ export const getDocument = async (documentId) => {
  * Delete a document by document ID
  */
 export const deleteDocument = async (documentId) => {
-  const response = await apiClient.delete(`/api/vector/documents/${documentId}`)
+  const response = await apiClient.delete(`/api/ocr/vector/documents/${documentId}`)
   return response.data
 }
 
@@ -90,7 +90,7 @@ export const deleteDocument = async (documentId) => {
  * Get other chunks (chunks without document_id)
  */
 export const getOtherChunks = async (limit = 1000) => {
-  const response = await apiClient.get('/api/vector/other-chunks', { params: { limit } })
+  const response = await apiClient.get('/api/ocr/vector/other-chunks', { params: { limit } })
   return response.data
 }
 
@@ -98,7 +98,7 @@ export const getOtherChunks = async (limit = 1000) => {
  * Delete all other chunks
  */
 export const deleteOtherChunks = async () => {
-  const response = await apiClient.delete('/api/vector/other-chunks')
+  const response = await apiClient.delete('/api/ocr/vector/other-chunks')
   return response.data
 }
 
@@ -106,7 +106,7 @@ export const deleteOtherChunks = async () => {
  * Delete a single chunk by point_id
  */
 export const deleteChunk = async (pointId) => {
-  const response = await apiClient.delete(`/api/vector/chunks/${pointId}`)
+  const response = await apiClient.delete(`/api/ocr/vector/chunks/${pointId}`)
   return response.data
 }
 

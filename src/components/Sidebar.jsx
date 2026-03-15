@@ -21,7 +21,7 @@ const Sidebar = ({ activeMenu, onOpenSchedule }) => {
         <div className="flex items-center mb-2">
           <div className="min-w-10 h-16 mx-auto mt-4">
             <img 
-              src="/src/assets/images/icon.png" 
+              src="/ce-logo.png" 
               alt="CE Logo" 
               className="w-full h-full object-contain"
             />
