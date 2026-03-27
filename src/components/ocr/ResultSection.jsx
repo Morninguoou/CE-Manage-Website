@@ -87,33 +87,33 @@ export const ResultSection = ({ result, onCompare, onCopy, onDownload, onProcess
               <button
                 type="button"
                 onClick={() => setViewMode("formatted")}
-                className={`p-1.5 rounded-md transition-all flex items-center justify-center ${
-                  viewMode === "formatted" ? "bg-white shadow-sm text-blue-600 ring-1 ring-blue-200" : "text-gray-500 hover:text-blue-500 hover:bg-blue-50"
+                className={`p-1.5 px-3 rounded-md transition-all flex items-center justify-center gap-1.5 ${
+                  viewMode === "formatted" ? "bg-white shadow-sm text-blue-600 ring-1 ring-blue-200 font-medium" : "text-gray-500 hover:text-blue-500 hover:bg-blue-50"
                 }`}
                 title="Formatted view"
               >
                 <Eye className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => setViewMode("raw")}
-                className={`p-1.5 rounded-md transition-all flex items-center justify-center ${
-                  viewMode === "raw" ? "bg-white shadow-sm text-blue-600 ring-1 ring-blue-200" : "text-gray-500 hover:text-blue-500 hover:bg-blue-50"
-                }`}
-                title="Raw text view"
-              >
-                <EyeOff className="w-4 h-4" />
+                <span className="text-xs">View</span>
               </button>
               {!result.pipeline_complete && (
                 <button
                   type="button"
-                  onClick={() => setViewMode("edit")}
-                  className={`p-1.5 rounded-md transition-all flex items-center justify-center ${
-                    viewMode === "edit" ? "bg-white shadow-sm text-blue-600 ring-1 ring-blue-200" : "text-gray-500 hover:text-blue-500 hover:bg-blue-50"
+                  onClick={() => {
+                    if (result.text && onTextChange) {
+                      const mdText = formatTextAsMarkdown(result.text);
+                      if (mdText !== result.text) {
+                        onTextChange(mdText);
+                      }
+                    }
+                    setViewMode("edit");
+                  }}
+                  className={`p-1.5 px-3 rounded-md transition-all flex items-center justify-center gap-1.5 ${
+                    viewMode === "edit" ? "bg-white shadow-sm text-blue-600 ring-1 ring-blue-200 font-medium" : "text-gray-500 hover:text-blue-500 hover:bg-blue-50"
                   }`}
-                  title="Edit text before storing"
+                  title="Edit Markdown text before storing"
                 >
                   <Pencil className="w-4 h-4" />
+                  <span className="text-xs">Edit</span>
                 </button>
               )}
             </div>
@@ -126,8 +126,7 @@ export const ResultSection = ({ result, onCompare, onCopy, onDownload, onProcess
           viewMode === "edit" && !result.pipeline_complete ? (
             <div className="flex-1 flex flex-col bg-white rounded-lg border-2 border-blue-200 shadow-sm overflow-hidden focus-within:ring-2 focus-within:ring-blue-400 focus-within:border-blue-400 transition-all">
               <div className="bg-blue-50 border-b border-blue-100 px-3 py-2 text-xs font-semibold text-blue-700 flex justify-between items-center">
-                <span>Editing Mode</span>
-                <span className="text-blue-500 font-normal">Changes will be saved automatically</span>
+                <span>Editing Markdown</span>
               </div>
               <textarea
                 value={result.text}
@@ -138,11 +137,11 @@ export const ResultSection = ({ result, onCompare, onCopy, onDownload, onProcess
               />
             </div>
           ) : (
-            <div className={`bg-white rounded-lg p-4 shadow-sm break-words flex-1 ${viewMode === "raw" ? "border-2 border-gray-200" : "border border-gray-100"}`}>
+            <div className="bg-white rounded-lg p-4 shadow-sm break-words flex-1 border border-gray-100">
               <MarkdownRenderer
                 content={formatTextAsMarkdown(result.text)}
                 theme="blue"
-                viewMode={viewMode === "edit" ? "formatted" : viewMode}
+                viewMode="formatted"
               />
             </div>
           )
