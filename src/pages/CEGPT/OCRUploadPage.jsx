@@ -10,7 +10,7 @@ import 'react-pdf/dist/esm/Page/TextLayer.css'
 function OCRUploadPage() {
   const backendStatus = useBackendStatus()
   const { file, fileUrl, fileInputRef, fileError, handleFileChange, resetFile } = useFileUpload()
-  const { extracting, storing, result, error, extractText, processAndStoreText, reset: resetOCR } = useOCR()
+  const { extracting, storing, result, error, extractText, updateResultText, processAndStoreText, reset: resetOCR } = useOCR()
   const [showCompare, setShowCompare] = useState(false)
   const [openScheduleModal, setOpenScheduleModal] = useState(false);
 
@@ -94,6 +94,7 @@ function OCRUploadPage() {
               onCompare={handleCompare}
               onProcess={handleProcess}
               processing={storing}
+              onTextChange={updateResultText}
             />
           </div>
 

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Copy, Download, GitCompare, Eye, EyeOff, ArchiveRestore, BadgeCheck } from "lucide-react";
+import { Copy, Download, GitCompare, Eye, EyeOff, ArchiveRestore, BadgeCheck, Pencil } from "lucide-react";
 import PropTypes from "prop-types";
 import { MarkdownRenderer } from "./MarkdownRenderer";
 import {
@@ -9,7 +9,7 @@ import {
 } from "../../utils/ocr";
 import { Button } from "./ui";
 
-export const ResultSection = ({ result, onCompare, onCopy, onDownload, onProcess, processing }) => {
+export const ResultSection = ({ result, onCompare, onCopy, onDownload, onProcess, processing, onTextChange }) => {
   const [viewMode, setViewMode] = useState("formatted");
 
   const handleCopy = async () => {
@@ -81,38 +81,71 @@ export const ResultSection = ({ result, onCompare, onCopy, onDownload, onProcess
             >
               <Download className="w-4 h-4" />
             </Button>
-            <Button
-              onClick={() =>
-                setViewMode(viewMode === "formatted" ? "raw" : "formatted")
-              }
-              variant="blue"
-              size="sm"
-              title={
-                viewMode === "formatted"
-                  ? "Show raw text"
-                  : "Show formatted text"
-              }
-              className="flex items-center justify-center"
-            >
-              {viewMode === "raw" ? (
-                <EyeOff className="w-4 h-4" />
-              ) : (
+
+            {/* View Mode Toggles */}
+            <div className="flex bg-blue-50/50 rounded-lg p-0.5 border border-blue-100">
+              <button
+                type="button"
+                onClick={() => setViewMode("formatted")}
+                className={`p-1.5 rounded-md transition-all flex items-center justify-center ${
+                  viewMode === "formatted" ? "bg-white shadow-sm text-blue-600 ring-1 ring-blue-200" : "text-gray-500 hover:text-blue-500 hover:bg-blue-50"
+                }`}
+                title="Formatted view"
+              >
                 <Eye className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode("raw")}
+                className={`p-1.5 rounded-md transition-all flex items-center justify-center ${
+                  viewMode === "raw" ? "bg-white shadow-sm text-blue-600 ring-1 ring-blue-200" : "text-gray-500 hover:text-blue-500 hover:bg-blue-50"
+                }`}
+                title="Raw text view"
+              >
+                <EyeOff className="w-4 h-4" />
+              </button>
+              {!result.pipeline_complete && (
+                <button
+                  type="button"
+                  onClick={() => setViewMode("edit")}
+                  className={`p-1.5 rounded-md transition-all flex items-center justify-center ${
+                    viewMode === "edit" ? "bg-white shadow-sm text-blue-600 ring-1 ring-blue-200" : "text-gray-500 hover:text-blue-500 hover:bg-blue-50"
+                  }`}
+                  title="Edit text before storing"
+                >
+                  <Pencil className="w-4 h-4" />
+                </button>
               )}
-            </Button>
+            </div>
           </div>
         )}
       </div>
 
-      <div className="flex-1 overflow-y-auto custom-scrollbar p-4 bg-gradient-to-br from-gray-50 to-orange-50/30">
+      <div className="flex-1 overflow-y-auto custom-scrollbar p-4 bg-gradient-to-br from-gray-50 to-orange-50/30 flex flex-col">
         {result ? (
-          <div className="bg-white rounded-lg p-4 border-2 border-gray-200 shadow-sm break-words">
-            <MarkdownRenderer
-              content={formatTextAsMarkdown(result.text)}
-              theme="blue"
-              viewMode={viewMode}
-            />
-          </div>
+          viewMode === "edit" && !result.pipeline_complete ? (
+            <div className="flex-1 flex flex-col bg-white rounded-lg border-2 border-blue-200 shadow-sm overflow-hidden focus-within:ring-2 focus-within:ring-blue-400 focus-within:border-blue-400 transition-all">
+              <div className="bg-blue-50 border-b border-blue-100 px-3 py-2 text-xs font-semibold text-blue-700 flex justify-between items-center">
+                <span>Editing Mode</span>
+                <span className="text-blue-500 font-normal">Changes will be saved automatically</span>
+              </div>
+              <textarea
+                value={result.text}
+                onChange={(e) => onTextChange && onTextChange(e.target.value)}
+                className="w-full h-full p-4 resize-none outline-none text-gray-700 font-mono text-sm leading-relaxed custom-scrollbar bg-transparent"
+                placeholder="Text is currently empty. Edit it here manually if needed."
+                spellCheck={false}
+              />
+            </div>
+          ) : (
+            <div className={`bg-white rounded-lg p-4 shadow-sm break-words flex-1 ${viewMode === "raw" ? "border-2 border-gray-200" : "border border-gray-100"}`}>
+              <MarkdownRenderer
+                content={formatTextAsMarkdown(result.text)}
+                theme="blue"
+                viewMode={viewMode === "edit" ? "formatted" : viewMode}
+              />
+            </div>
+          )
         ) : (
           <div className="flex items-center justify-center h-full text-gray-400">
             <p className="text-sm">
@@ -137,4 +170,5 @@ ResultSection.propTypes = {
   onDownload: PropTypes.func,
   onProcess: PropTypes.func,
   processing: PropTypes.bool,
+  onTextChange: PropTypes.func,
 };

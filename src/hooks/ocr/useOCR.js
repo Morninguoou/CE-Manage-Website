@@ -28,6 +28,12 @@ export const useOCR = () => {
     }
   }, [])
 
+  const updateResultText = useCallback((newText) => {
+    setResult((prevResult) => 
+      prevResult ? { ...prevResult, text: newText } : prevResult
+    )
+  }, [])
+
   const processAndStoreText = useCallback(async (text, filename, options = {}) => {
     if (!text || !text.trim()) {
       setError('No text to process')
@@ -63,6 +69,7 @@ export const useOCR = () => {
     result,
     error,
     extractText,
+    updateResultText,
     processAndStoreText,
     reset,
   }
